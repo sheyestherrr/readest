@@ -51,7 +51,6 @@ jobs:
         run: npm install -g vercel@latest
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
-        working-directory: apps/readest-app
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.PROJECT_ID}}
@@ -60,6 +59,7 @@ jobs:
         #   pnpm build
         #   vercel deploy --prebuilt --prod --token ${VERCEL_TOKEN}
         with:
+          working-directory: apps/readest-app
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           vercel-args: '--prod'
