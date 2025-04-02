@@ -42,15 +42,11 @@ jobs:
       - name: install Dependencies
         working-directory: apps/readest-app
         run: |
-          pnpm install && pnpm setup-pdfjs
+          pnpm install && pnpm setup-pdfjs && pnpm install npx && pnpm install vercel
       - name: build the web App
         working-directory: apps/readest-app
         run: |
           pnpm build-web
-      - name: Install Vercel CLI
-        working-directory: apps/readest-app
-        run: |
-          pnpm install vercel@latest && pnpm install npx
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         env:
