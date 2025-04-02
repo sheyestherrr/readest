@@ -57,7 +57,6 @@ jobs:
         #   pnpm build
         #   vercel deploy --prebuilt --prod --token ${VERCEL_TOKEN}
         with:
-          working-directory: apps/readest-app
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           vercel-args: '--prod'
