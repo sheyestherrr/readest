@@ -48,7 +48,7 @@ jobs:
         run: |
           pnpm build-web
       - name: Install Vercel CLI
-        run: npm install -g vercel@latest && npm i -g npx
+        run: pnpm install vercel@latest && pnpm i npx
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         env:
