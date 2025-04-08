@@ -265,5 +265,13 @@
   "Failed to parse the EPUB file.": "Falha ao analisar o arquivo EPUB.",
   "This book format is not supported.": "Este formato de livro não é suportado.",
   "Unable to fetch the translation. Please log in first and try again.": "Não foi possível buscar a tradução. Faça login primeiro e tente novamente.",
-  "Group": "Grupo"
+  "Group": "Grupo",
+  "Always on Top": "Sempre no Topo",
+  "No Timeout": "Sem Tempo Limite",
+  "{{value}} minute": "{{value}} minuto",
+  "{{value}} minutes": "{{value}} minutos",
+  "{{value}} hour": "{{value}} hora",
+  "{{value}} hours": "{{value}} horas",
+  "CJK Font": "Fonte CJK",
+  "Clear Search": "Limpar Pesquisa"
 }

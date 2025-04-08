@@ -265,5 +265,13 @@
   "Failed to parse the EPUB file.": "Không thể phân tích tệp EPUB.",
   "This book format is not supported.": "Định dạng sách này không được hỗ trợ.",
   "Unable to fetch the translation. Please log in first and try again.": "Không thể tải dịch vụ. Vui lòng đăng nhập trước và thử lại.",
-  "Group": "Nhóm"
+  "Group": "Nhóm",
+  "Always on Top": "Luôn ở trên cùng",
+  "No Timeout": "Không có thời gian chờ",
+  "{{value}} minute": "{{value}} phút",
+  "{{value}} minutes": "{{value}} phút",
+  "{{value}} hour": "{{value}} giờ",
+  "{{value}} hours": "{{value}} giờ",
+  "CJK Font": "Phông chữ CJK",
+  "Clear Search": "Xóa tìm kiếm"
 }
