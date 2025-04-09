@@ -145,8 +145,11 @@ export const SERIF_FONTS = [
   'Vollkorn',
   'Georgia',
   'Times New Roman',
-  _('LXGW WenKai GB Screen'),
 ];
+
+export const CJK_SERIF_FONTS = [_('LXGW WenKai GB Screen'), _('LXGW WenKai TC')];
+
+export const CJK_SANS_SERIF_FONTS = ['Noto Sans SC', 'Noto Sans TC'];
 
 export const SANS_SERIF_FONTS = ['Roboto', 'Noto Sans', 'Open Sans', 'Helvetica', 'Arial'];
 
@@ -183,6 +186,7 @@ export const WINDOWS_FONTS = [
   'Lucida Console',
   'Lucida Sans Unicode',
   'LXGW WenKai GB Screen',
+  'LXGW WenKai TC',
   'Malgun Gothic',
   'Marlett',
   'Microsoft Himalaya',
@@ -278,6 +282,7 @@ export const MACOS_FONTS = [
   'Lucida Grande',
   'Luminari',
   'LXGW WenKai GB Screen',
+  'LXGW WenKai TC',
   'Marker Felt',
   'Menlo',
   'Microsoft Sans Serif',
@@ -335,6 +340,7 @@ export const LINUX_FONTS = [
   'Liberation Sans',
   'Liberation Serif',
   'LXGW WenKai GB Screen',
+  'LXGW WenKai TC',
   'Noto Mono',
   'Noto Sans',
   'Noto Sans JP',
@@ -372,6 +378,7 @@ export const IOS_FONTS = [
   'Hiragino Sans',
   'Kaiti',
   'LXGW WenKai GB Screen',
+  'LXGW WenKai TC',
   'Palatino',
   'PingFang SC',
   'PingFang TC',
@@ -395,6 +402,7 @@ export const ANDROID_FONTS = [
   'Heiti',
   'Kaiti',
   'LXGW WenKai GB Screen',
+  'LXGW WenKai TC',
   'Noto Sans',
   'Noto Sans CJK',
   'Noto Sans JP',

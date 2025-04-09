@@ -3,6 +3,8 @@ import {
   SANS_SERIF_FONTS,
   SERIF_FONTS,
   FALLBACK_FONTS,
+  CJK_SANS_SERIF_FONTS,
+  CJK_SERIF_FONTS,
 } from '@/services/constants';
 import { ViewSettings } from '@/types/book';
 import {
@@ -28,23 +30,25 @@ const getFontStyles = (
   overrideFont: boolean,
   themeCode: ThemeCode,
 ) => {
-  const { primary } = themeCode;
-  const lastSerifFonts = ['LXGW WenKai GB Screen', 'Georgia', 'Times New Roman'];
+  const { fg, primary } = themeCode;
+  const lastSerifFonts = ['Georgia', 'Times New Roman'];
   const serifFonts = [
     serif,
     ...SERIF_FONTS.filter(
       (font) => font !== serif && font !== defaultCJKFont && !lastSerifFonts.includes(font),
     ),
-    ...(defaultCJKFont !== serif && !lastSerifFonts.includes(defaultCJKFont)
-      ? [defaultCJKFont]
-      : []),
-    ...lastSerifFonts.filter((font) => SERIF_FONTS.includes(font)),
+    ...(defaultCJKFont !== serif ? [defaultCJKFont] : []),
+    ...CJK_SERIF_FONTS.filter((font) => font !== serif && font !== defaultCJKFont),
+    ...lastSerifFonts.filter(
+      (font) => SERIF_FONTS.includes(font) && !lastSerifFonts.includes(defaultCJKFont),
+    ),
     ...FALLBACK_FONTS,
   ];
   const sansSerifFonts = [
     sansSerif,
     ...SANS_SERIF_FONTS.filter((font) => font !== sansSerif && font !== defaultCJKFont),
     ...(defaultCJKFont !== sansSerif ? [defaultCJKFont] : []),
+    ...CJK_SANS_SERIF_FONTS.filter((font) => font !== sansSerif && font !== defaultCJKFont),
     ...FALLBACK_FONTS,
   ];
   const monospaceFonts = [monospace, ...MONOSPACE_FONTS.filter((font) => font !== monospace)];
@@ -82,8 +86,6 @@ const getFontStyles = (
     }
     body * {
       ${overrideFont ? 'font-family: revert !important;' : ''}
-      ${overrideFont ? 'font-size: revert  !important;' : ''}
-      ${overrideFont ? 'color: revert !important;' : ''}
     }
     a:any-link {
       ${overrideFont ? `color: ${primary};` : ''}
@@ -94,6 +96,13 @@ const getFontStyles = (
         ${overrideFont ? `color: lightblue;` : ''}
       }
     }
+    /* override inline hardcoded text color */
+    *[style*="color: rgb(0,0,0)"], *[style*="color: rgb(0, 0, 0)"],
+    *[style*="color: #000"], *[style*="color: #000000"], *[style*="color: black"],
+    *[style*="color:rgb(0,0,0)"], *[style*="color:rgb(0, 0, 0)"],
+    *[style*="color:#000"], *[style*="color:#000000"], *[style*="color:black"] {
+      color: ${fg} !important;
+    }
   `;
   return fontStyles;
 };
@@ -101,6 +110,8 @@ const getFontStyles = (
 const getAdditionalFontLinks = () => `
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/misans-webfont@1.0.4/misans-l3/misans-l3/result.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cn-fontsource-lxgw-wen-kai-gb-screen@1.0.6/font.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC&display=swap" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC&family=Noto+Sans+TC&display=swap" crossorigin="anonymous">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP&display=swap" crossorigin="anonymous">
 `;
 
@@ -419,7 +430,15 @@ export const transformStylesheet = (css: string) => {
     .replace(/font-size\s*:\s*x-large/gi, 'font-size: 1.5rem')
     .replace(/font-size\s*:\s*xx-large/gi, 'font-size: 2rem')
     .replace(/font-size\s*:\s*xxx-large/gi, 'font-size: 3rem')
-    .replace(/\scolor\s*:\s*#000000/gi, 'color: var(--theme-fg-color)')
-    .replace(/\scolor\s*:\s*#000/gi, 'color: var(--theme-fg-color)')
-    .replace(/\scolor\s*:\s*rgb\(0,\s*0,\s*0\)/gi, 'color: var(--theme-fg-color)');
+    .replace(/font-size\s*:\s*(\d+(?:\.\d+)?)px/gi, (_, px) => {
+      const rem = parseFloat(px) / 16;
+      return `font-size: ${rem}rem`;
+    })
+    .replace(/font-size\s*:\s*(\d+(?:\.\d+)?)pt/gi, (_, pt) => {
+      const rem = parseFloat(pt) / 12;
+      return `font-size: ${rem}rem`;
+    })
+    .replace(/[\s;]color\s*:\s*#000000/gi, 'color: var(--theme-fg-color)')
+    .replace(/[\s;]color\s*:\s*#000/gi, 'color: var(--theme-fg-color)')
+    .replace(/[\s;]color\s*:\s*rgb\(0,\s*0,\s*0\)/gi, 'color: var(--theme-fg-color)');
 };
