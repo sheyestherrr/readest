@@ -1,4 +1,4 @@
-import { AppPlatform, AppService } from '@/types/system';
+import { AppPlatform, AppService, OsPlatform } from '@/types/system';
 
 import { SystemSettings } from '@/types/settings';
 import { FileSystem, BaseDir } from '@/types/system';
@@ -41,22 +41,24 @@ import { TxtToEpubConverter } from '@/utils/txt';
 import { BOOK_FILE_NOT_FOUND_ERROR } from './errors';
 
 export abstract class BaseAppService implements AppService {
-  osPlatform: string = getOSPlatform();
-  localBooksDir: string = '';
+  osPlatform: OsPlatform = getOSPlatform();
+  appPlatform: AppPlatform = 'tauri';
+  localBooksDir = '';
+  isMobile = false;
+  isMacOSApp = false;
+  isAppDataSandbox = false;
+  isAndroidApp = false;
+  isIOSApp = false;
+  hasTrafficLight = false;
+  hasWindow = false;
+  hasWindowBar = false;
+  hasContextMenu = false;
+  hasRoundedWindow = false;
+  hasSafeAreaInset = false;
+  hasHaptics = false;
+  hasSysFontsList = false;
+
   abstract fs: FileSystem;
-  abstract appPlatform: AppPlatform;
-  abstract isAppDataSandbox: boolean;
-  abstract isMobile: boolean;
-  abstract isAndroidApp: boolean;
-  abstract isIOSApp: boolean;
-  abstract hasTrafficLight: boolean;
-  abstract hasWindow: boolean;
-  abstract hasWindowBar: boolean;
-  abstract hasContextMenu: boolean;
-  abstract hasRoundedWindow: boolean;
-  abstract hasSafeAreaInset: boolean;
-  abstract hasHaptics: boolean;
-  abstract hasSysFontsList: boolean;
 
   abstract resolvePath(fp: string, base: BaseDir): { baseDir: number; base: BaseDir; fp: string };
   abstract getCoverImageUrl(book: Book): string;
@@ -157,11 +159,11 @@ export abstract class BaseAppService implements AppService {
 
       try {
         if (typeof file === 'string') {
-          filename = getFilename(file);
           fileobj = await this.fs.openFile(file, 'None');
+          filename = fileobj.name || getFilename(file);
         } else {
-          filename = file.name;
           fileobj = file;
+          filename = file.name;
         }
         if (filename.endsWith('.txt')) {
           const txt2epub = new TxtToEpubConverter();
@@ -210,10 +212,10 @@ export abstract class BaseAppService implements AppService {
         !transient &&
         (!(await this.fs.exists(getLocalBookFilename(book), 'Books')) || overwrite)
       ) {
-        if (typeof file === 'string' && isContentURI(file)) {
-          await this.fs.copyFile(file, getLocalBookFilename(book), 'Books');
-        } else if (filename.endsWith('.txt')) {
+        if (filename.endsWith('.txt')) {
           await this.fs.writeFile(getLocalBookFilename(book), 'Books', fileobj);
+        } else if (typeof file === 'string' && isContentURI(file)) {
+          await this.fs.copyFile(file, getLocalBookFilename(book), 'Books');
         } else if (typeof file === 'string' && !isValidURL(file)) {
           await this.fs.copyFile(file, getLocalBookFilename(book), 'Books');
         } else {

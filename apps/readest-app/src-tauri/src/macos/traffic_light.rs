@@ -30,7 +30,6 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         .build()
 }
 
-#[cfg(target_os = "macos")]
 #[command]
 pub fn set_traffic_lights(window: Window, visible: bool, x: f64, y: f64) {
     unsafe {
@@ -47,7 +46,6 @@ pub fn set_traffic_lights(window: Window, visible: bool, x: f64, y: f64) {
     }
 }
 
-#[cfg(target_os = "macos")]
 fn position_traffic_lights(ns_window_handle: UnsafeWindowHandle, visible: bool, x: f64, y: f64) {
     use cocoa::appkit::{NSView, NSWindow, NSWindowButton};
     use cocoa::foundation::NSRect;
@@ -83,13 +81,11 @@ fn position_traffic_lights(ns_window_handle: UnsafeWindowHandle, visible: bool, 
     }
 }
 
-#[cfg(target_os = "macos")]
 #[derive(Debug)]
 struct WindowState<R: Runtime> {
     window: Window<R>,
 }
 
-#[cfg(target_os = "macos")]
 pub fn setup_traffic_light_positioner<R: Runtime>(window: Window<R>) {
     use cocoa::appkit::NSWindow;
     use cocoa::base::{id, BOOL};
@@ -148,13 +144,14 @@ pub fn setup_traffic_light_positioner<R: Runtime>(window: Window<R>) {
                         .expect("NS window should exist on state to handle resize")
                         as id;
 
-                    #[cfg(target_os = "macos")]
-                    position_traffic_lights(
-                        UnsafeWindowHandle(id as *mut std::ffi::c_void),
-                        TRAFFIC_LIGHTS_VISIBLE,
-                        WINDOW_CONTROL_PAD_X,
-                        WINDOW_CONTROL_PAD_Y,
-                    );
+                    if state.window.label() == "main" {
+                        position_traffic_lights(
+                            UnsafeWindowHandle(id as *mut std::ffi::c_void),
+                            TRAFFIC_LIGHTS_VISIBLE,
+                            WINDOW_CONTROL_PAD_X,
+                            WINDOW_CONTROL_PAD_Y,
+                        );
+                    }
                 });
 
                 let super_del: id = *this.get_ivar("super_delegate");
@@ -281,12 +278,14 @@ pub fn setup_traffic_light_positioner<R: Runtime>(window: Window<R>) {
                         .expect("Failed to emit event");
 
                     let id = state.window.ns_window().expect("Failed to emit event") as id;
-                    position_traffic_lights(
-                        UnsafeWindowHandle(id as *mut std::ffi::c_void),
-                        TRAFFIC_LIGHTS_VISIBLE,
-                        WINDOW_CONTROL_PAD_X,
-                        WINDOW_CONTROL_PAD_Y,
-                    );
+                    if state.window.label() == "main" {
+                        position_traffic_lights(
+                            UnsafeWindowHandle(id as *mut std::ffi::c_void),
+                            TRAFFIC_LIGHTS_VISIBLE,
+                            WINDOW_CONTROL_PAD_X,
+                            WINDOW_CONTROL_PAD_Y,
+                        );
+                    }
                 });
 
                 let super_del: id = *this.get_ivar("super_delegate");

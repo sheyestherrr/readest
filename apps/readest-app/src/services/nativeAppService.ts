@@ -14,7 +14,7 @@ import {
 } from '@tauri-apps/plugin-fs';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { open as openDialog } from '@tauri-apps/plugin-dialog';
-import { join, appDataDir, appCacheDir } from '@tauri-apps/api/path';
+import { join, basename, appDataDir, appCacheDir } from '@tauri-apps/api/path';
 import { type as osType } from '@tauri-apps/plugin-os';
 
 import { Book } from '@/types/book';
@@ -76,10 +76,11 @@ export const nativeFileSystem: FileSystem = {
   },
   async openFile(path: string, base: BaseDir, name?: string) {
     const { fp, baseDir } = resolvePath(path, base);
-    const fname = name || getFilename(fp);
+    let fname = name || getFilename(fp);
     if (isValidURL(path)) {
-      return await new RemoteFile(path, name).open();
+      return await new RemoteFile(path, fname).open();
     } else if (isContentURI(path)) {
+      fname = await basename(path);
       if (path.includes('com.android.externalstorage')) {
         // If the URI is from shared internal storage (like /storage/emulated/0),
         // we can access it directly using the path — no need to copy.
@@ -206,19 +207,20 @@ export const nativeFileSystem: FileSystem = {
 
 export class NativeAppService extends BaseAppService {
   fs = nativeFileSystem;
-  appPlatform = 'tauri' as AppPlatform;
-  isAppDataSandbox = ['android', 'ios'].includes(OS_TYPE);
-  isMobile = ['android', 'ios'].includes(OS_TYPE);
-  isAndroidApp = OS_TYPE === 'android';
-  isIOSApp = OS_TYPE === 'ios';
-  hasTrafficLight = OS_TYPE === 'macos';
-  hasWindow = !(OS_TYPE === 'ios' || OS_TYPE === 'android');
-  hasWindowBar = !(OS_TYPE === 'ios' || OS_TYPE === 'android');
-  hasContextMenu = !(OS_TYPE === 'ios' || OS_TYPE === 'android');
-  hasRoundedWindow = !(OS_TYPE === 'ios' || OS_TYPE === 'android') && !!window.IS_ROUNDED;
-  hasSafeAreaInset = OS_TYPE === 'ios' || OS_TYPE === 'android';
-  hasHaptics = OS_TYPE === 'ios' || OS_TYPE === 'android';
-  hasSysFontsList = !(OS_TYPE === 'ios' || OS_TYPE === 'android');
+  override appPlatform = 'tauri' as AppPlatform;
+  override isAppDataSandbox = ['android', 'ios'].includes(OS_TYPE);
+  override isMobile = ['android', 'ios'].includes(OS_TYPE);
+  override isAndroidApp = OS_TYPE === 'android';
+  override isIOSApp = OS_TYPE === 'ios';
+  override isMacOSApp = OS_TYPE === 'macos';
+  override hasTrafficLight = OS_TYPE === 'macos';
+  override hasWindow = !(OS_TYPE === 'ios' || OS_TYPE === 'android');
+  override hasWindowBar = !(OS_TYPE === 'ios' || OS_TYPE === 'android');
+  override hasContextMenu = !(OS_TYPE === 'ios' || OS_TYPE === 'android');
+  override hasRoundedWindow = !(OS_TYPE === 'ios' || OS_TYPE === 'android') && !!window.IS_ROUNDED;
+  override hasSafeAreaInset = OS_TYPE === 'ios' || OS_TYPE === 'android';
+  override hasHaptics = OS_TYPE === 'ios' || OS_TYPE === 'android';
+  override hasSysFontsList = !(OS_TYPE === 'ios' || OS_TYPE === 'android');
 
   override resolvePath(fp: string, base: BaseDir): { baseDir: number; base: BaseDir; fp: string } {
     return resolvePath(fp, base);
