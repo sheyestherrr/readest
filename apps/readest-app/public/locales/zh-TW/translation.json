@@ -281,5 +281,16 @@
   "Downloading {{downloaded}} of {{contentLength}}": "正在下載 {{downloaded}} / {{contentLength}}",
   "Download finished": "下載完成",
   "DOWNLOAD & INSTALL": "下載並安裝",
-  "Changelog:": "更新日誌："
+  "Changelog:": "更新日誌：",
+  "Software Update": "軟體更新",
+  "Title": "書名",
+  "Date Read": "閱讀日期",
+  "Date Added": "添加日期",
+  "Format": "格式",
+  "Ascending": "升序",
+  "Descending": "降序",
+  "Sort by...": "排序方式...",
+  "Added:": "添加日期",
+  "Format:": "格式",
+  "GuanKiapTsingKhai-T": "原俠正楷-T"
 }

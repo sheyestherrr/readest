@@ -281,5 +281,16 @@
   "Downloading {{downloaded}} of {{contentLength}}": "Завантаження {{downloaded}} з {{contentLength}}",
   "Download finished": "Завантаження завершено",
   "DOWNLOAD & INSTALL": "ЗАВАНТАЖИТИ І ВСТАНОВИТИ",
-  "Changelog:": "Журнал змін:"
+  "Changelog:": "Журнал змін:",
+  "Software Update": "Оновлення програмного забезпечення",
+  "Title": "Назва",
+  "Date Read": "Дата прочитання",
+  "Date Added": "Дата додавання",
+  "Format": "Формат",
+  "Ascending": "За зростанням",
+  "Descending": "За спаданням",
+  "Sort by...": "Сортувати за...",
+  "Added:": "Додано:",
+  "Format:": "Формат:",
+  "GuanKiapTsingKhai-T": "GuanKiapTsingKhai-T"
 }

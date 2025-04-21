@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { FaSearch } from 'react-icons/fa';
 import { PiPlus } from 'react-icons/pi';
 import { PiSelectionAllDuotone } from 'react-icons/pi';
+import { PiDotsThreeCircle } from 'react-icons/pi';
 import { MdOutlineMenu, MdArrowBackIosNew } from 'react-icons/md';
 import { IoMdCloseCircle } from 'react-icons/io';
 
@@ -13,11 +14,12 @@ import { useResponsiveSize } from '@/hooks/useResponsiveSize';
 import { useTrafficLightStore } from '@/store/trafficLightStore';
 import { navigateToLibrary } from '@/utils/nav';
 import { throttle } from '@/utils/throttle';
+import useShortcuts from '@/hooks/useShortcuts';
 import WindowButtons from '@/components/WindowButtons';
 import Dropdown from '@/components/Dropdown';
 import SettingsMenu from './SettingsMenu';
 import ImportMenu from './ImportMenu';
-import useShortcuts from '@/hooks/useShortcuts';
+import SortMenu from './SortMenu';
 
 interface LibraryHeaderProps {
   isSelectMode: boolean;
@@ -44,7 +46,7 @@ const LibraryHeader: React.FC<LibraryHeaderProps> = ({
   const [searchQuery, setSearchQuery] = useState(searchParams?.get('q') ?? '');
 
   const headerRef = useRef<HTMLDivElement>(null);
-  const iconSize16 = useResponsiveSize(16);
+  const iconSize18 = useResponsiveSize(18);
   const iconSize20 = useResponsiveSize(20);
 
   useShortcuts({
@@ -90,10 +92,12 @@ const LibraryHeader: React.FC<LibraryHeaderProps> = ({
     <div
       ref={headerRef}
       className={clsx(
-        'titlebar z-10 flex h-[52px] w-full items-center py-2 pr-4 sm:h-[48px] sm:pr-6',
-        appService?.hasSafeAreaInset && 'mt-[env(safe-area-inset-top)]',
+        'titlebar bg-base-200 z-10 flex h-[52px] w-full items-center py-2 pr-4 sm:h-[48px] sm:pr-6',
         isTrafficLightVisible ? 'pl-16' : 'pl-0 sm:pl-2',
       )}
+      style={{
+        marginTop: appService?.hasSafeAreaInset ? 'max(env(safe-area-inset-top), 24px)' : '',
+      }}
     >
       <div className='flex w-full items-center justify-between space-x-6 sm:space-x-12'>
         <div className='exclude-title-bar-mousedown relative flex w-full items-center pl-4'>
@@ -173,7 +177,14 @@ const LibraryHeader: React.FC<LibraryHeaderProps> = ({
           <Dropdown
             className='exclude-title-bar-mousedown dropdown-bottom dropdown-end'
             buttonClassName='btn btn-ghost h-8 min-h-8 w-8 p-0'
-            toggleButton={<MdOutlineMenu size={iconSize16} />}
+            toggleButton={<PiDotsThreeCircle size={iconSize18} />}
+          >
+            <SortMenu />
+          </Dropdown>
+          <Dropdown
+            className='exclude-title-bar-mousedown dropdown-bottom dropdown-end'
+            buttonClassName='btn btn-ghost h-8 min-h-8 w-8 p-0'
+            toggleButton={<MdOutlineMenu size={iconSize18} />}
           >
             <SettingsMenu />
           </Dropdown>

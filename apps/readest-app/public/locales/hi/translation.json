@@ -281,5 +281,16 @@
   "Downloading {{downloaded}} of {{contentLength}}": "डाउनलोड कर रहा है {{downloaded}} का {{contentLength}}",
   "Download finished": "डाउनलोड पूरा हुआ",
   "DOWNLOAD & INSTALL": "डाउनलोड और इंस्टॉल करें",
-  "Changelog:": "चेंजलॉग:"
+  "Changelog:": "चेंजलॉग:",
+  "Software Update": "सॉफ़्टवेयर अपडेट",
+  "Title": "शीर्षक",
+  "Date Read": "पढ़ने की तारीख",
+  "Date Added": "जोड़ा गया दिनांक",
+  "Format": "फॉर्मेट",
+  "Ascending": "आरोही",
+  "Descending": "अवरोही",
+  "Sort by...": "द्वारा क्रमबद्ध करें...",
+  "Added:": "जोड़ा गया:",
+  "Format:": "फॉर्मेट:",
+  "GuanKiapTsingKhai-T": "GuanKiapTsingKhai-T"
 }

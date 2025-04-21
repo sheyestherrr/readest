@@ -31,3 +31,30 @@ pub struct CopyURIResponse {
 pub struct UseBackgroundAudioRequest {
     pub enabled: bool,
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InstallPackageRequest {
+    pub path: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InstallPackageResponse {
+    pub success: bool,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SetSystemUIVisibilityRequest {
+    pub visible: bool,
+    pub dark_mode: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SetSystemUIVisibilityResponse {
+    pub success: bool,
+    pub error: Option<String>,
+}

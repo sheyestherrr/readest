@@ -6,7 +6,7 @@ import { PiUserCircleCheck } from 'react-icons/pi';
 import { MdCheck } from 'react-icons/md';
 
 import { setAboutDialogVisible } from '@/components/AboutWindow';
-import { hasUpdater, isTauriAppPlatform, isWebAppPlatform } from '@/services/environment';
+import { isTauriAppPlatform, isWebAppPlatform } from '@/services/environment';
 import { DOWNLOAD_READEST_URL } from '@/services/constants';
 import { useAuth } from '@/context/AuthContext';
 import { useEnv } from '@/context/EnvContext';
@@ -19,11 +19,11 @@ import { QuotaType } from '@/types/user';
 import MenuItem from '@/components/MenuItem';
 import Quota from '@/components/Quota';
 
-interface BookMenuProps {
+interface SettingsMenuProps {
   setIsDropdownOpen?: (isOpen: boolean) => void;
 }
 
-const SettingsMenu: React.FC<BookMenuProps> = ({ setIsDropdownOpen }) => {
+const SettingsMenu: React.FC<SettingsMenuProps> = ({ setIsDropdownOpen }) => {
   const _ = useTranslation();
   const router = useRouter();
   const { envConfig, appService } = useEnv();
@@ -132,7 +132,7 @@ const SettingsMenu: React.FC<BookMenuProps> = ({ setIsDropdownOpen }) => {
   return (
     <div
       tabIndex={0}
-      className='settings-menu dropdown-content no-triangle border-base-100 z-20 mt-3 w-72 shadow-2xl'
+      className='settings-menu dropdown-content no-triangle border-base-100 z-20 mt-2 w-72 shadow-2xl'
     >
       {user ? (
         <MenuItem
@@ -177,7 +177,7 @@ const SettingsMenu: React.FC<BookMenuProps> = ({ setIsDropdownOpen }) => {
           onClick={toggleAutoImportBooksOnOpen}
         />
       )}
-      {hasUpdater() && (
+      {appService?.hasUpdater && (
         <MenuItem
           label={_('Check Updates on Start')}
           icon={isAutoCheckUpdates ? <MdCheck className='text-base-content' /> : undefined}

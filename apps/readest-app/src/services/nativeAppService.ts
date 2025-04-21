@@ -99,12 +99,12 @@ export const nativeFileSystem: FileSystem = {
       }
     } else {
       const prefix = this.getPrefix(base);
-      if (prefix && OS_TYPE !== 'android') {
+      const absolutePath = path.startsWith('/') ? path : prefix ? await join(prefix, path) : null;
+      if (absolutePath && OS_TYPE !== 'android') {
         // NOTE: RemoteFile currently performs about 2× faster than NativeFile
         // due to an unresolved performance issue in Tauri (see tauri-apps/tauri#9190).
         // Once the bug is resolved, we should switch back to using NativeFile.
         // RemoteFile is not usable on Android due to unknown issues of range fetch with Android WebView.
-        const absolutePath = await join(prefix, path);
         return await new RemoteFile(this.getURL(absolutePath), fname).open();
       } else {
         return await new NativeFile(fp, fname, base ? baseDir : null).open();
@@ -221,6 +221,7 @@ export class NativeAppService extends BaseAppService {
   override hasSafeAreaInset = OS_TYPE === 'ios' || OS_TYPE === 'android';
   override hasHaptics = OS_TYPE === 'ios' || OS_TYPE === 'android';
   override hasSysFontsList = !(OS_TYPE === 'ios' || OS_TYPE === 'android');
+  override hasUpdater = OS_TYPE !== 'ios' && !process.env['NEXT_PUBLIC_DISABLE_UPDATER'];
 
   override resolvePath(fp: string, base: BaseDir): { baseDir: number; base: BaseDir; fp: string } {
     return resolvePath(fp, base);

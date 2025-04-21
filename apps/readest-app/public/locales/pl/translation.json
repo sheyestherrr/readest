@@ -281,5 +281,16 @@
   "Downloading {{downloaded}} of {{contentLength}}": "Pobieranie {{downloaded}} z {{contentLength}}",
   "Download finished": "Pobieranie zakończone",
   "DOWNLOAD & INSTALL": "POBIERZ I ZAINSTALUJ",
-  "Changelog:": "Dziennik zmian:"
+  "Changelog:": "Dziennik zmian:",
+  "Software Update": "Aktualizacja oprogramowania",
+  "Title": "Tytuł",
+  "Date Read": "Data przeczytania",
+  "Date Added": "Data dodania",
+  "Format": "Format",
+  "Ascending": "Rosnąco",
+  "Descending": "Malejąco",
+  "Sort by...": "Sortuj według...",
+  "Added:": "Data dodania:",
+  "Format:": "Format:",
+  "GuanKiapTsingKhai-T": "GuanKiapTsingKhai-T"
 }

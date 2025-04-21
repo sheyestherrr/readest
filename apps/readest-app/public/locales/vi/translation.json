@@ -281,5 +281,16 @@
   "Downloading {{downloaded}} of {{contentLength}}": "Đang tải {{downloaded}} trong {{contentLength}}",
   "Download finished": "Tải xuống hoàn tất",
   "DOWNLOAD & INSTALL": "TẢI XUỐNG & CÀI ĐẶT",
-  "Changelog:": "Thay đổi:"
+  "Changelog:": "Thay đổi:",
+  "Software Update": "Cập nhật phần mềm",
+  "Title": "Tiêu đề",
+  "Date Read": "Ngày đã đọc",
+  "Date Added": "Ngày thêm",
+  "Format": "Định dạng",
+  "Ascending": "Tăng dần",
+  "Descending": "Giảm dần",
+  "Sort by...": "Sắp xếp theo...",
+  "Added:": "Đã thêm:",
+  "Format:": "Định dạng:",
+  "GuanKiapTsingKhai-T": "GuanKiapTsingKhai-T"
 }

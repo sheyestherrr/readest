@@ -38,6 +38,8 @@ export const DEFAULT_SYSTEM_SETTINGS: Partial<SystemSettings> = {
   autoCheckUpdates: true,
   screenWakeLock: true,
   autoImportBooksOnOpen: false,
+  librarySortBy: 'updated',
+  librarySortAscending: false,
 
   lastSyncedAtBooks: 0,
   lastSyncedAtConfigs: 0,
@@ -59,6 +61,11 @@ export const DEFAULT_READSETTINGS: ReadSettings = {
     underline: 'green',
     squiggly: 'blue',
   },
+};
+
+export const DEFAULT_MOBILE_READSETTINGS: Partial<ReadSettings> = {
+  sideBarWidth: '25%',
+  isSideBarPinned: false,
 };
 
 export const DEFAULT_BOOK_FONT: BookFont = {
@@ -148,7 +155,11 @@ export const SERIF_FONTS = [
   'Times New Roman',
 ];
 
-export const CJK_SERIF_FONTS = [_('LXGW WenKai GB Screen'), _('LXGW WenKai TC')];
+export const CJK_SERIF_FONTS = [
+  _('LXGW WenKai GB Screen'),
+  _('LXGW WenKai TC'),
+  _('GuanKiapTsingKhai-T'),
+];
 
 export const CJK_SANS_SERIF_FONTS = ['Noto Sans SC', 'Noto Sans TC'];
 
@@ -435,6 +446,7 @@ export const CJK_FONTS_PATTENS = new RegExp(
     'Hei',
     'Yan',
     'Min',
+    'Khai',
     'Yuan',
     'Song',
     'Ming',
@@ -467,6 +479,12 @@ export const BOOK_IDS_SEPARATOR = '+';
 export const DOWNLOAD_READEST_URL = 'https://readest.com?utm_source=readest_web';
 
 export const READEST_WEB_BASE_URL = 'https://book.singlyn.com';
+
+export const GITHUB_LATEST_DOWNLOAD = 'https://github.com/readest/readest/releases/latest/download';
+
+export const READEST_UPDATER_FILE = `${GITHUB_LATEST_DOWNLOAD}/latest.json`;
+
+export const READEST_CHANGELOG_FILE = `${GITHUB_LATEST_DOWNLOAD}/release-notes.json`;
 
 export const SYNC_PROGRESS_INTERVAL_SEC = 60;
 export const SYNC_NOTES_INTERVAL_SEC = 10;

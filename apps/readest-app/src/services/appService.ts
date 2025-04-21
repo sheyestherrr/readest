@@ -31,6 +31,7 @@ import {
   DEFAULT_MOBILE_VIEW_SETTINGS,
   DEFAULT_SYSTEM_SETTINGS,
   DEFAULT_CJK_VIEW_SETTINGS,
+  DEFAULT_MOBILE_READSETTINGS,
 } from './constants';
 import { getOSPlatform, isCJKEnv, isContentURI, isValidURL } from '@/utils/misc';
 import { deserializeConfig, serializeConfig } from '@/utils/serializer';
@@ -57,6 +58,7 @@ export abstract class BaseAppService implements AppService {
   hasSafeAreaInset = false;
   hasHaptics = false;
   hasSysFontsList = false;
+  hasUpdater = false;
 
   abstract fs: FileSystem;
 
@@ -98,7 +100,10 @@ export abstract class BaseAppService implements AppService {
         ...DEFAULT_SYSTEM_SETTINGS,
         version: SYSTEM_SETTINGS_VERSION,
         localBooksDir: await this.getInitBooksDir(),
-        globalReadSettings: DEFAULT_READSETTINGS,
+        globalReadSettings: {
+          ...DEFAULT_READSETTINGS,
+          ...(this.isMobile ? DEFAULT_MOBILE_READSETTINGS : {}),
+        },
         globalViewSettings: {
           ...DEFAULT_BOOK_LAYOUT,
           ...DEFAULT_BOOK_STYLE,
@@ -136,7 +141,8 @@ export abstract class BaseAppService implements AppService {
 
   async importBook(
     // file might be:
-    // 1. absolute path for local file
+    // 1.1 absolute path for local file on Desktop
+    // 1.2 /private/var inbox file path on iOS
     // 2. remote url
     // 3. content provider uri
     // 4. File object from browsers
@@ -375,11 +381,16 @@ export abstract class BaseAppService implements AppService {
       await this.fs.createDir(getDir(book), 'Books');
     }
 
-    if (needDownCover) {
-      const lfp = getCoverFilename(book);
-      const cfp = `${CLOUD_BOOKS_SUBDIR}/${lfp}`;
-      await this.downloadCloudFile(lfp, cfp, handleProgress);
-      completedFiles.count++;
+    try {
+      if (needDownCover) {
+        const lfp = getCoverFilename(book);
+        const cfp = `${CLOUD_BOOKS_SUBDIR}/${lfp}`;
+        await this.downloadCloudFile(lfp, cfp, handleProgress);
+        completedFiles.count++;
+      }
+    } catch (error) {
+      // don't throw error here since some books may not have cover images at all
+      console.log('Failed to download cover file:', error);
     }
 
     if (needDownBook) {

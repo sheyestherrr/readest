@@ -281,5 +281,16 @@
   "Downloading {{downloaded}} of {{contentLength}}": "İndiriliyor {{downloaded}}/{{contentLength}}",
   "Download finished": "İndirme tamamlandı",
   "DOWNLOAD & INSTALL": "İNDİR & YÜKLE",
-  "Changelog:": "Değişiklik Günlüğü:"
+  "Changelog:": "Değişiklik Günlüğü:",
+  "Software Update": "Yazılım Güncellemesi",
+  "Title": "Başlık",
+  "Date Read": "Okunma Tarihi",
+  "Date Added": "Eklenme Tarihi",
+  "Format": "Biçim",
+  "Ascending": "Artan",
+  "Descending": "Azalan",
+  "Sort by...": "Şuna göre sırala...",
+  "Added:": "Eklenme:",
+  "Format:": "Biçim:",
+  "GuanKiapTsingKhai-T": "GuanKiapTsingKhai-T"
 }

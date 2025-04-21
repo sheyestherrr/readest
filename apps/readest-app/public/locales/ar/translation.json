@@ -281,5 +281,16 @@
   "Downloading {{downloaded}} of {{contentLength}}": "جارٍ تنزيل {{downloaded}} من {{contentLength}}",
   "Download finished": "اكتمل التنزيل",
   "DOWNLOAD & INSTALL": "تنزيل وتثبيت",
-  "Changelog:": "سجل التغييرات:"
+  "Changelog:": "سجل التغييرات:",
+  "Software Update": "تحديث البرنامج",
+  "Title": "العنوان",
+  "Date Read": "تاريخ القراءة",
+  "Date Added": "تاريخ الإضافة",
+  "Format": "التنسيق",
+  "Ascending": "تصاعدي",
+  "Descending": "تنازلي",
+  "Sort by...": "ترتيب حسب...",
+  "Added:": "تاريخ الإضافة:",
+  "Format:": "التنسيق:",
+  "GuanKiapTsingKhai-T": "GuanKiapTsingKhai-T"
 }

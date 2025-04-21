@@ -281,5 +281,16 @@
   "Downloading {{downloaded}} of {{contentLength}}": "Herunterladen {{downloaded}} von {{contentLength}}",
   "Download finished": "Download abgeschlossen",
   "DOWNLOAD & INSTALL": "HERUNTERLADEN & INSTALLIEREN",
-  "Changelog:": "Änderungsprotokoll:"
+  "Changelog:": "Änderungsprotokoll:",
+  "Software Update": "Software-Update",
+  "Title": "Titel",
+  "Date Read": "Datum gelesen",
+  "Date Added": "Datum hinzugefügt",
+  "Format": "Format",
+  "Ascending": "Aufsteigend",
+  "Descending": "Absteigend",
+  "Sort by...": "Sortieren nach...",
+  "Added:": "Hinzugefügt:",
+  "Format:": "Format:",
+  "GuanKiapTsingKhai-T": "GuanKiapTsingKhai-T"
 }

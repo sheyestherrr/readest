@@ -281,5 +281,16 @@
   "Downloading {{downloaded}} of {{contentLength}}": "Mengunduh {{downloaded}} dari {{contentLength}}",
   "Download finished": "Unduhan selesai",
   "DOWNLOAD & INSTALL": "UNDUH & INSTAL",
-  "Changelog:": "Catatan Perubahan:"
+  "Changelog:": "Catatan Perubahan:",
+  "Software Update": "Pembaruan Perangkat Lunak",
+  "Title": "Judul",
+  "Date Read": "Tanggal Dibaca",
+  "Date Added": "Tanggal Ditambahkan",
+  "Format": "Format",
+  "Ascending": "Naik",
+  "Descending": "Turun",
+  "Sort by...": "Urutkan berdasarkan...",
+  "Added:": "Ditambahkan:",
+  "Format:": "Format:",
+  "GuanKiapTsingKhai-T": "GuanKiapTsingKhai-T"
 }

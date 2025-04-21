@@ -281,5 +281,16 @@
   "Downloading {{downloaded}} of {{contentLength}}": "ダウンロード中 {{downloaded}} / {{contentLength}}",
   "Download finished": "ダウンロード完了",
   "DOWNLOAD & INSTALL": "更新",
-  "Changelog:": "変更ログ："
+  "Changelog:": "変更ログ：",
+  "Software Update": "ソフトウェアの更新",
+  "Title": "タイトル",
+  "Date Read": "読書日",
+  "Date Added": "追加日",
+  "Format": "形式",
+  "Ascending": "昇順",
+  "Descending": "降順",
+  "Sort by...": "並べ替え...",
+  "Added:": "追加日：",
+  "Format:": "形式：",
+  "GuanKiapTsingKhai-T": "GuanKiapTsingKhai-T"
 }

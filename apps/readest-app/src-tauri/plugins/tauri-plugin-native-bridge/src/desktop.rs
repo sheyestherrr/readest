@@ -29,4 +29,18 @@ impl<R: Runtime> NativeBridge<R> {
     pub fn use_background_audio(&self, _payload: UseBackgroundAudioRequest) -> crate::Result<()> {
         Err(crate::Error::UnsupportedPlatformError)
     }
+
+    pub fn install_package(
+        &self,
+        _payload: InstallPackageRequest,
+    ) -> crate::Result<InstallPackageResponse> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
+
+    pub fn set_system_ui_visibility(
+        &self,
+        _payload: SetSystemUIVisibilityRequest,
+    ) -> crate::Result<SetSystemUIVisibilityResponse> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
 }

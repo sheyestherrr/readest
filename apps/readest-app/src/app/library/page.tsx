@@ -12,8 +12,8 @@ import { getFilename, listFormater } from '@/utils/book';
 import { eventDispatcher } from '@/utils/event';
 import { ProgressPayload } from '@/utils/transfer';
 import { throttle } from '@/utils/throttle';
-import { parseOpenWithFiles } from '@/helpers/cli';
-import { isTauriAppPlatform, hasUpdater } from '@/services/environment';
+import { parseOpenWithFiles } from '@/helpers/openWith';
+import { isTauriAppPlatform } from '@/services/environment';
 import { checkForAppUpdates } from '@/helpers/updater';
 import { FILE_ACCEPT_FORMATS, SUPPORTED_FILE_EXTS } from '@/services/constants';
 import { impactFeedback } from '@tauri-apps/plugin-haptics';
@@ -21,7 +21,6 @@ import { getCurrentWebview } from '@tauri-apps/api/webview';
 
 import { useEnv } from '@/context/EnvContext';
 import { useAuth } from '@/context/AuthContext';
-import { useThemeStore } from '@/store/themeStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLibraryStore } from '@/store/libraryStore';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -34,6 +33,7 @@ import { useOpenWithBooks } from '@/hooks/useOpenWithBooks';
 import { tauriHandleSetAlwaysOnTop, tauriQuitApp } from '@/utils/window';
 
 import { AboutWindow } from '@/components/AboutWindow';
+import { UpdaterWindow } from '@/components/UpdaterWindow';
 import { Toast } from '@/components/Toast';
 import Spinner from '@/components/Spinner';
 import LibraryHeader from './components/LibraryHeader';
@@ -59,8 +59,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
     setCheckOpenWithBooks,
   } = useLibraryStore();
   const _ = useTranslation();
-  useTheme();
-  const { updateAppTheme } = useThemeStore();
+  useTheme({ systemUIVisible: true, appThemeColor: 'base-200' });
   const { settings, setSettings, saveSettings } = useSettingsStore();
   const [loading, setLoading] = useState(false);
   const isInitiating = useRef(false);
@@ -94,13 +93,8 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
   });
 
   useEffect(() => {
-    updateAppTheme('base-200');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
     const doCheckAppUpdates = async () => {
-      if (hasUpdater() && settings.autoCheckUpdates) {
+      if (appService?.hasUpdater && settings.autoCheckUpdates) {
         await checkForAppUpdates(_);
       }
     };
@@ -203,7 +197,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
       for (const file of openWithFiles) {
         console.log('Open with book:', file);
         try {
-          const temp = !settings.autoImportBooksOnOpen;
+          const temp = appService.isMobile ? false : !settings.autoImportBooksOnOpen;
           const book = await appService.importBook(file, libraryBooks, true, true, false, temp);
           if (book) {
             bookIds.push(book.hash);
@@ -532,11 +526,16 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
           <div
             ref={containerRef}
             className={clsx(
-              'scroll-container drop-zone mt-[48px] flex-grow overflow-y-auto px-4 sm:px-2',
-              appService?.hasSafeAreaInset && 'mt-[calc(52px+env(safe-area-inset-top))]',
+              'scroll-container drop-zone flex-grow overflow-y-auto px-4 sm:px-2',
+              appService?.hasSafeAreaInset && 'pt-[52px]',
               appService?.hasSafeAreaInset && 'pb-[calc(env(safe-area-inset-bottom))]',
               isDragging && 'drag-over',
             )}
+            style={{
+              marginTop: appService?.hasSafeAreaInset
+                ? 'max(env(safe-area-inset-top), 24px)'
+                : '48px',
+            }}
           >
             <DropIndicator />
             <Bookshelf
@@ -574,9 +573,13 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
           isOpen={!!showDetailsBook}
           book={showDetailsBook}
           onClose={() => setShowDetailsBook(null)}
+          handleBookUpload={handleBookUpload}
+          handleBookDownload={handleBookDownload}
+          handleBookDelete={handleBookDelete}
         />
       )}
       <AboutWindow />
+      {appService?.isAndroidApp && <UpdaterWindow />}
       <Toast />
     </div>
   );
