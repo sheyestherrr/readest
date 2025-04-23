@@ -28,9 +28,14 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useTheme } from '@/hooks/useTheme';
 import { useDemoBooks } from './hooks/useDemoBooks';
 import { useBooksSync } from './hooks/useBooksSync';
+import { useThemeStore } from '@/store/themeStore';
 import { useScreenWakeLock } from '@/hooks/useScreenWakeLock';
 import { useOpenWithBooks } from '@/hooks/useOpenWithBooks';
-import { tauriHandleSetAlwaysOnTop, tauriQuitApp } from '@/utils/window';
+import {
+  tauriHandleSetAlwaysOnTop,
+  tauriHandleToggleFullScreen,
+  tauriQuitApp,
+} from '@/utils/window';
 
 import { AboutWindow } from '@/components/AboutWindow';
 import { UpdaterWindow } from '@/components/UpdaterWindow';
@@ -61,6 +66,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
   const _ = useTranslation();
   useTheme({ systemUIVisible: true, appThemeColor: 'base-200' });
   const { settings, setSettings, saveSettings } = useSettingsStore();
+  const { statusBarHeight } = useThemeStore();
   const [loading, setLoading] = useState(false);
   const isInitiating = useRef(false);
   const [libraryLoaded, setLibraryLoaded] = useState(false);
@@ -85,6 +91,11 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
   useScreenWakeLock(settings.screenWakeLock);
 
   useShortcuts({
+    onToggleFullscreen: async () => {
+      if (isTauriAppPlatform()) {
+        await tauriHandleToggleFullScreen();
+      }
+    },
     onQuitApp: async () => {
       if (isTauriAppPlatform()) {
         await tauriQuitApp();
@@ -533,7 +544,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
             )}
             style={{
               marginTop: appService?.hasSafeAreaInset
-                ? 'max(env(safe-area-inset-top), 24px)'
+                ? `max(env(safe-area-inset-top), ${statusBarHeight}px)`
                 : '48px',
             }}
           >
