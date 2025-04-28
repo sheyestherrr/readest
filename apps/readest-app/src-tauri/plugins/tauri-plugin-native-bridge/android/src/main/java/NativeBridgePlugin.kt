@@ -11,7 +11,12 @@ import android.view.WindowManager
 import android.view.WindowInsetsController
 import android.graphics.Color
 import android.webkit.WebView
+import android.graphics.fonts.SystemFonts
+import android.graphics.fonts.Font
+import androidx.core.view.WindowCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.browser.customtabs.CustomTabsIntent
 import app.tauri.annotation.Command
 import app.tauri.annotation.InvokeArg
@@ -19,6 +24,7 @@ import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
+import org.json.JSONArray
 import java.io.*
 
 @InvokeArg
@@ -180,7 +186,8 @@ class NativeBridgePlugin(private val activity: Activity): Plugin(activity) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     } else {
-                        controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_BARS_BY_SWIPE
+                        val compatController = WindowCompat.getInsetsController(window, decorView)
+                        compatController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     }
 
                     if (isDarkMode) {
@@ -200,26 +207,24 @@ class NativeBridgePlugin(private val activity: Activity): Plugin(activity) {
                         controller.hide(WindowInsets.Type.systemBars())
                     }
                 }
-                window.statusBarColor = Color.TRANSPARENT
-                window.navigationBarColor = Color.TRANSPARENT
             } else {
-                @Suppress("DEPRECATION")
-                decorView.systemUiVisibility = when {
-                    visible && !isDarkMode -> View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or
-                                              View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                                              View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    visible -> View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                               View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    else -> View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                            View.SYSTEM_UI_FLAG_FULLSCREEN
+                val compatController = WindowCompat.getInsetsController(window, decorView)
+                compatController?.let {
+                    it.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    if (!isDarkMode) {
+                        it.isAppearanceLightStatusBars = true
+                    } else {
+                        it.isAppearanceLightStatusBars = false
+                    }
+                    if (visible) {
+                        it.show(WindowInsetsCompat.Type.statusBars())
+                    } else {
+                        it.hide(WindowInsetsCompat.Type.systemBars())
+                    }
                 }
-                window.statusBarColor = Color.TRANSPARENT
-                window.navigationBarColor = Color.TRANSPARENT
             }
+            window.statusBarColor = Color.TRANSPARENT
+            window.navigationBarColor = Color.TRANSPARENT
             ret.put("success", true)
         } catch (e: Exception) {
             ret.put("success", false)
@@ -241,6 +246,45 @@ class NativeBridgePlugin(private val activity: Activity): Plugin(activity) {
             ret.put("height", height)
         } catch (e: Exception) {
             ret.put("height", -1)
+            ret.put("error", e.message)
+        }
+        invoke.resolve(ret)
+    }
+
+    @Command
+    fun get_sys_fonts_list(invoke: Invoke) {
+        val ret = JSObject()
+        try {
+            val fontList = mutableListOf<String>()
+            val fontFileList = mutableListOf<String>()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val systemFonts = SystemFonts.getAvailableFonts()
+                for (font in systemFonts) {
+                    val file = font.getFile()?: continue
+                    if (file.isFile && (file.name.endsWith(".ttf", true) || file.name.endsWith(".otf", true))) {
+                        fontFileList.add(file.name)
+                    }
+                }
+            } else {
+                val fontDirs = listOf("/system/fonts", "/system/font", "/data/fonts")
+                for (dirPath in fontDirs) {
+                  val dir = File(dirPath)
+                  if (dir.exists() && dir.isDirectory) {
+                      dir.listFiles()?.forEach { file ->
+                          if (file.isFile && (file.name.endsWith(".ttf", true) || file.name.endsWith(".otf", true))) {
+                              fontFileList.add(file.name)
+                          }
+                      }
+                  }
+                }
+            }
+            for (fileFileName in fontFileList) {
+                var fontName = fileFileName
+                    .replace(Regex("\\.(ttf|otf)$", RegexOption.IGNORE_CASE), "")
+                    .trim()
+            }
+            ret.put("fonts", JSONArray(fontList))
+        } catch (e: Exception) {
             ret.put("error", e.message)
         }
         invoke.resolve(ret)

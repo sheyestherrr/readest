@@ -105,17 +105,6 @@ async fn start_server(window: Window) -> Result<u16, String> {
     .map_err(|err| err.to_string())
 }
 
-#[cfg(desktop)]
-#[command]
-async fn list_fonts() -> Result<Vec<String>, String> {
-    let font_collection = font_enumeration::Collection::new().unwrap();
-    let mut fonts = Vec::new();
-    for font in font_collection.all() {
-        fonts.push(font.family_name.clone());
-    }
-    Ok(fonts)
-}
-
 #[derive(Clone, serde::Serialize)]
 #[allow(dead_code)]
 struct Payload {
@@ -138,8 +127,6 @@ pub fn run() {
             macos::apple_auth::start_apple_sign_in,
             #[cfg(target_os = "macos")]
             macos::traffic_light::set_traffic_lights,
-            #[cfg(desktop)]
-            list_fonts
         ])
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
@@ -220,17 +207,37 @@ pub fn run() {
                 });
             }
 
-            #[cfg(any(windows, target_os = "linux"))]
+            #[cfg(target_os = "windows")]
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
                 app.deep_link().register_all()?;
             }
 
-            app.handle().plugin(
+            #[cfg(target_os = "linux")]
+            {
+                fn has_xdg_mime() -> bool {
+                    std::process::Command::new("which")
+                        .arg("xdg-mime")
+                        .output()
+                        .map(|output| output.status.success())
+                        .unwrap_or(false)
+                }
+
+                if has_xdg_mime() {
+                    use tauri_plugin_deep_link::DeepLinkExt;
+                    app.deep_link().register_all()?;
+                } else {
+                    println!("xdg-mime not found; skipping deep link setup on Linux.");
+                }
+            }
+
+            if let Err(e) = app.handle().plugin(
                 tauri_plugin_log::Builder::default()
                     .level(log::LevelFilter::Info)
                     .build(),
-            )?;
+            ) {
+                eprintln!("Failed to initialize tauri_plugin_log: {}", e);
+            };
 
             let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::default());
 
