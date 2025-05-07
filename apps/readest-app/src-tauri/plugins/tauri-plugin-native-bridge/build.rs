@@ -7,6 +7,8 @@ const COMMANDS: &[&str] = &[
     "set_system_ui_visibility",
     "get_status_bar_height",
     "get_sys_fonts_list",
+    "intercept_keys",
+    "lock_screen_orientation",
 ];
 
 fn main() {

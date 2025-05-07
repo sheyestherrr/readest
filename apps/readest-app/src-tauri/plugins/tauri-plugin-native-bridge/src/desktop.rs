@@ -1,4 +1,5 @@
 use serde::de::DeserializeOwned;
+use std::collections::HashMap;
 use tauri::{plugin::PluginApi, AppHandle, Runtime};
 
 use crate::models::*;
@@ -50,10 +51,26 @@ impl<R: Runtime> NativeBridge<R> {
 
     pub fn get_sys_fonts_list(&self) -> crate::Result<GetSysFontsListResponse> {
         let font_collection = font_enumeration::Collection::new().unwrap();
-        let mut fonts = Vec::new();
+        let mut fonts = HashMap::new();
         for font in font_collection.all() {
-            fonts.push(font.font_name.clone());
+            if cfg!(target_os = "windows") {
+                // FIXME: temporarily disable font name with style for windows
+                fonts.insert(font.family_name.clone(), font.family_name.clone());
+            } else {
+                fonts.insert(font.font_name.clone(), font.family_name.clone());
+            }
         }
         Ok(GetSysFontsListResponse { fonts, error: None })
+    }
+
+    pub fn intercept_keys(&self, _payload: InterceptKeysRequest) -> crate::Result<()> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
+
+    pub fn lock_screen_orientation(
+        &self,
+        _payload: LockScreenOrientationRequest,
+    ) -> crate::Result<()> {
+        Err(crate::Error::UnsupportedPlatformError)
     }
 }

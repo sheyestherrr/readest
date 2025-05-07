@@ -68,9 +68,12 @@ export type WritingMode = 'auto' | 'horizontal-tb' | 'horizontal-rl' | 'vertical
 export interface BookLayout {
   marginPx: number;
   gapPercent: number;
+  compactMarginPx: number;
+  compactGapPercent: number;
   scrolled: boolean;
   disableClick: boolean;
   swapClickArea: boolean;
+  volumeKeysToFlip: boolean;
   continuousScroll: boolean;
   maxColumnCount: number;
   maxInlineSize: number;
@@ -123,7 +126,17 @@ export interface TTSConfig {
   ttsVoice: string;
 }
 
-export interface ViewSettings extends BookLayout, BookStyle, BookFont, ViewConfig, TTSConfig {}
+export interface ScreenConfig {
+  screenOrientation: 'auto' | 'portrait' | 'landscape';
+}
+
+export interface ViewSettings
+  extends BookLayout,
+    BookStyle,
+    BookFont,
+    ViewConfig,
+    TTSConfig,
+    ScreenConfig {}
 
 export interface BookProgress {
   location: string;
@@ -142,6 +155,7 @@ export interface BookSearchConfig {
   matchDiacritics: boolean;
   index?: number;
   query?: string;
+  acceptNode?: (node: Node) => number;
 }
 
 export interface SearchExcerpt {

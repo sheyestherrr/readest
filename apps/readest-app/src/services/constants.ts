@@ -4,6 +4,7 @@ import {
   BookSearchConfig,
   BookStyle,
   HighlightColor,
+  ScreenConfig,
   TTSConfig,
   ViewConfig,
   ViewSettings,
@@ -37,6 +38,8 @@ export const DEFAULT_SYSTEM_SETTINGS: Partial<SystemSettings> = {
   alwaysOnTop: false,
   autoCheckUpdates: true,
   screenWakeLock: true,
+  openLastBooks: false,
+  lastOpenBooks: [],
   autoImportBooksOnOpen: false,
   libraryViewMode: 'grid',
   librarySortBy: 'updated',
@@ -83,9 +86,12 @@ export const DEFAULT_BOOK_FONT: BookFont = {
 export const DEFAULT_BOOK_LAYOUT: BookLayout = {
   marginPx: 44,
   gapPercent: 5,
+  compactMarginPx: 0,
+  compactGapPercent: 0,
   scrolled: false,
   disableClick: false,
   swapClickArea: false,
+  volumeKeysToFlip: false,
   continuousScroll: false,
   maxColumnCount: 2,
   maxInlineSize: getDefaultMaxInlineSize(),
@@ -138,6 +144,10 @@ export const DEFAULT_TTS_CONFIG: TTSConfig = {
   ttsVoice: '',
 };
 
+export const DEFAULT_SCREEN_CONFIG: ScreenConfig = {
+  screenOrientation: 'auto',
+};
+
 export const DEFAULT_BOOK_SEARCH_CONFIG: BookSearchConfig = {
   scope: 'book',
   matchCase: false,
@@ -155,6 +165,8 @@ export const SERIF_FONTS = [
   'Georgia',
   'Times New Roman',
 ];
+
+export const NON_FREE_FONTS = ['Georgia', 'Times New Roman'];
 
 export const CJK_SERIF_FONTS = [
   _('LXGW WenKai GB Screen'),

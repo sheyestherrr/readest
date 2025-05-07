@@ -9,6 +9,7 @@ import { useReaderStore } from '@/store/readerStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { BookSearchConfig, BookSearchResult } from '@/types/book';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
+import { isCJKStr } from '@/utils/lang';
 import Dropdown from '@/components/Dropdown';
 import SearchOptions from './SearchOptions';
 
@@ -31,6 +32,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const _ = useTranslation();
   const { envConfig } = useEnv();
   const { settings } = useSettingsStore();
+  const { getBookData } = useBookDataStore();
   const { getConfig, saveConfig } = useBookDataStore();
   const { getView, getProgress } = useReaderStore();
   const [searchTerm, setSearchTerm] = useState(term);
@@ -38,7 +40,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const view = getView(bookKey)!;
   const config = getConfig(bookKey)!;
+  const bookData = getBookData(bookKey)!;
   const progress = getProgress(bookKey)!;
+  const primaryLang = bookData.book?.primaryLanguage || 'en';
   const searchConfig = config.searchConfig! as BookSearchConfig;
 
   const queuedSearchTerm = useRef('');
@@ -104,8 +108,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const exceedMinSearchTermLength = (searchTerm: string) => {
-    const isCJK = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/.test(searchTerm);
-    const minLength = isCJK ? MINIMUM_SEARCH_TERM_LENGTH_CJK : MINIMUM_SEARCH_TERM_LENGTH_DEFAULT;
+    const minLength = isCJKStr(searchTerm)
+      ? MINIMUM_SEARCH_TERM_LENGTH_CJK
+      : MINIMUM_SEARCH_TERM_LENGTH_DEFAULT;
 
     return searchTerm.length >= minLength;
   };
@@ -118,12 +123,30 @@ const SearchBar: React.FC<SearchBarProps> = ({
     }
   };
 
+  const createAcceptNode = ({ withRT = true } = {}) => {
+    return (node: Node): number => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const name = (node as Element).tagName.toLowerCase();
+        if (name === 'script' || name === 'style' || (!withRT && name === 'rt')) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_SKIP;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    };
+  };
+
   const handleSearch = async (term: string) => {
     console.log('searching for:', term);
     isSearchPending.current = true;
     const { section } = progress;
     const index = searchConfig.scope === 'section' ? section.current : undefined;
-    const generator = await view.search({ ...searchConfig, query: term, index });
+    const generator = await view.search({
+      ...searchConfig,
+      index,
+      query: term,
+      acceptNode: createAcceptNode({ withRT: !primaryLang.startsWith('ja') }),
+    });
     const results: BookSearchResult[] = [];
     for await (const result of generator) {
       if (typeof result === 'string') {

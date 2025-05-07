@@ -58,7 +58,7 @@ const TOCItemView: React.FC<{
   }, [expandedItems, item.href]);
 
   return (
-    <li className='w-full' style={{ paddingTop: '1px' }}>
+    <li className='border-base-300 w-full border-b sm:border-none sm:pt-[1px]'>
       <span
         role='treeitem'
         tabIndex={-1}
@@ -67,17 +67,26 @@ const TOCItemView: React.FC<{
         aria-expanded={isExpanded ? 'true' : 'false'}
         aria-selected={isActive ? 'true' : 'false'}
         data-href={item.href ? getContentMd5(item.href) : undefined}
-        className={`flex w-full cursor-pointer items-center rounded-md py-2 ${
-          isActive ? 'bg-base-300/85 hover:bg-base-300' : 'sm:hover:bg-base-300/85'
+        className={`flex w-full cursor-pointer items-center rounded-md py-4 sm:py-2 ${
+          isActive
+            ? 'sm:bg-base-300/85 sm:hover:bg-base-300 sm:text-base-content text-blue-500'
+            : 'sm:hover:bg-base-300/85'
         }`}
       >
         {item.subitems && (
-          <span onClick={handleToggleExpand} className='inline-block cursor-pointer'>
+          <span
+            onClick={handleToggleExpand}
+            className='inline-block cursor-pointer'
+            style={{
+              padding: '12px',
+              margin: '-12px',
+            }}
+          >
             {createExpanderIcon(isExpanded)}
           </span>
         )}
         <span
-          className='ml-2 truncate text-ellipsis'
+          className='ms-2 truncate text-ellipsis'
           style={{
             maxWidth: 'calc(100% - 24px)',
             whiteSpace: 'nowrap',
@@ -86,6 +95,11 @@ const TOCItemView: React.FC<{
         >
           {item.label}
         </span>
+        {item.location && (
+          <span className='text-base-content/50 ms-auto ps-1 text-xs sm:pe-1'>
+            {item.location.current + 1}
+          </span>
+        )}
       </span>
       {item.subitems && isExpanded && (
         <ol role='group'>
@@ -109,7 +123,7 @@ const TOCView: React.FC<{
   toc: TOCItem[];
 }> = ({ bookKey, toc }) => {
   const { getProgress } = useReaderStore();
-  const { sideBarBookKey } = useSidebarStore();
+  const { sideBarBookKey, isSideBarVisible } = useSidebarStore();
   const progress = getProgress(bookKey);
 
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
@@ -132,9 +146,6 @@ const TOCView: React.FC<{
       }
       (currentItem as HTMLElement).setAttribute('aria-current', 'page');
     }
-    if (currentHref) {
-      expandParents(toc, currentHref);
-    }
   };
 
   useEffect(() => {
@@ -151,17 +162,23 @@ const TOCView: React.FC<{
     }
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewRef]);
+  }, [viewRef.current]);
 
   useEffect(() => {
     if (!progress || eventDispatcher.dispatchSync('tts-is-speaking')) return;
+    if (sideBarBookKey !== bookKey) return;
+    if (!isSideBarVisible) return;
+    const { sectionHref: currentHref } = progress;
+    if (currentHref) {
+      expandParents(toc, currentHref);
+    }
     scrollToProgress(progress);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toc, progress, sideBarBookKey]);
+  }, [toc, progress, sideBarBookKey, isSideBarVisible]);
 
   return (
     <div className='rounded pt-2'>
-      <ul role='tree' ref={viewRef} className='px-2'>
+      <ul role='tree' ref={viewRef} className='pe-4 ps-2 sm:pe-2'>
         {toc &&
           toc.map((item, index) => (
             <TOCItemView

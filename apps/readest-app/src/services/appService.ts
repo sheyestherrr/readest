@@ -33,6 +33,7 @@ import {
   DEFAULT_SYSTEM_SETTINGS,
   DEFAULT_CJK_VIEW_SETTINGS,
   DEFAULT_MOBILE_READSETTINGS,
+  DEFAULT_SCREEN_CONFIG,
 } from './constants';
 import { getOSPlatform, isCJKEnv, isContentURI, isValidURL } from '@/utils/misc';
 import { deserializeConfig, serializeConfig } from '@/utils/serializer';
@@ -48,9 +49,11 @@ export abstract class BaseAppService implements AppService {
   localBooksDir = '';
   isMobile = false;
   isMacOSApp = false;
+  isLinuxApp = false;
   isAppDataSandbox = false;
   isAndroidApp = false;
   isIOSApp = false;
+  isMobileApp = false;
   hasTrafficLight = false;
   hasWindow = false;
   hasWindowBar = false;
@@ -93,6 +96,7 @@ export abstract class BaseAppService implements AppService {
         ...(isCJKEnv() ? DEFAULT_CJK_VIEW_SETTINGS : {}),
         ...DEFAULT_VIEW_CONFIG,
         ...DEFAULT_TTS_CONFIG,
+        ...DEFAULT_SCREEN_CONFIG,
         ...settings.globalViewSettings,
       };
     } catch {
@@ -112,6 +116,7 @@ export abstract class BaseAppService implements AppService {
           ...(isCJKEnv() ? DEFAULT_CJK_VIEW_SETTINGS : {}),
           ...DEFAULT_VIEW_CONFIG,
           ...DEFAULT_TTS_CONFIG,
+          ...DEFAULT_SCREEN_CONFIG,
         },
       } as SystemSettings;
 
@@ -407,6 +412,20 @@ export abstract class BaseAppService implements AppService {
     if (bookDownloaded || (!onlyCover && !needDownBook)) {
       book.downloadedAt = Date.now();
     }
+  }
+
+  async isBookAvailable(book: Book): Promise<boolean> {
+    const fp = getLocalBookFilename(book);
+    if (await this.fs.exists(fp, 'Books')) {
+      return true;
+    }
+    if (book.filePath) {
+      return await this.fs.exists(book.filePath, 'None');
+    }
+    if (book.url) {
+      return isValidURL(book.url);
+    }
+    return false;
   }
 
   async loadBookContent(book: Book, settings: SystemSettings): Promise<BookContent> {

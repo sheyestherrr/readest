@@ -39,8 +39,17 @@ export interface GetStatusBarHeightResponse {
 }
 
 export interface GetSystemFontsListResponse {
-  fonts: string[];
+  fonts: Record<string, string>; // { fontName: fontFamily }
   error?: string;
+}
+
+export interface InterceptKeysRequest {
+  volumeKeys?: boolean;
+  backKey?: boolean;
+}
+
+export interface LockScreenRequest {
+  orientation: 'portrait' | 'landscape' | 'auto';
 }
 
 export async function copyURIToPath(request: CopyURIRequest): Promise<CopyURIResponse> {
@@ -96,4 +105,16 @@ export async function getSysFontsList(): Promise<GetSystemFontsListResponse> {
   );
   cachedSysFontsResult = result;
   return result;
+}
+
+export async function interceptKeys(request: InterceptKeysRequest): Promise<void> {
+  await invoke('plugin:native-bridge|intercept_keys', {
+    payload: request,
+  });
+}
+
+export async function lockScreenOrientation(request: LockScreenRequest): Promise<void> {
+  await invoke('plugin:native-bridge|lock_screen_orientation', {
+    payload: request,
+  });
 }

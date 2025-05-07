@@ -2,10 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { BookDoc, getDirection } from '@/libs/document';
 import { BookConfig } from '@/types/book';
 import { FoliateView, wrappedFoliateView } from '@/types/view';
+import { useEnv } from '@/context/EnvContext';
 import { useThemeStore } from '@/store/themeStore';
 import { useReaderStore } from '@/store/readerStore';
 import { useParallelViewStore } from '@/store/parallelViewStore';
-import { useClickEvent, useTouchEvent } from '../hooks/useIframeEvents';
+import { useMouseEvent, useTouchEvent } from '../hooks/useIframeEvents';
+import { usePagination } from '../hooks/usePagination';
 import { useFoliateEvents } from '../hooks/useFoliateEvents';
 import { useProgressSync } from '../hooks/useProgressSync';
 import { useProgressAutoSave } from '../hooks/useProgressAutoSave';
@@ -25,12 +27,14 @@ import {
 import { getMaxInlineSize } from '@/utils/config';
 import { getDirFromUILanguage } from '@/utils/rtl';
 import { transformContent } from '@/services/transformService';
+import { lockScreenOrientation } from '@/utils/bridge';
 
 const FoliateViewer: React.FC<{
   bookKey: string;
   bookDoc: BookDoc;
   config: BookConfig;
 }> = ({ bookKey, bookDoc, config }) => {
+  const { appService } = useEnv();
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<FoliateView | null>(null);
   const isViewCreated = useRef(false);
@@ -55,27 +59,30 @@ const FoliateViewer: React.FC<{
     setProgress(bookKey, detail.cfi, detail.tocItem, detail.section, detail.location, detail.range);
   };
 
-  const docTransformHandler = (event: Event) => {
-    const { detail } = event as CustomEvent;
-    detail.data = Promise.resolve(detail.data)
-      .then((data) => {
-        const viewSettings = getViewSettings(bookKey);
-        if (detail.type === 'text/css') return transformStylesheet(data);
-        if (viewSettings && detail.type === 'application/xhtml+xml') {
-          const ctx = {
-            bookKey,
-            viewSettings,
-            content: data,
-            transformers: ['punctuation'],
-          };
-          return Promise.resolve(transformContent(ctx));
-        }
-        return data;
-      })
-      .catch((e) => {
-        console.error(new Error(`Failed to load ${detail.name}`, { cause: e }));
-        return '';
-      });
+  const getDocTransformHandler = ({ width, height }: { width: number; height: number }) => {
+    return (event: Event) => {
+      const { detail } = event as CustomEvent;
+      detail.data = Promise.resolve(detail.data)
+        .then((data) => {
+          const viewSettings = getViewSettings(bookKey);
+          if (viewSettings && detail.type === 'text/css')
+            return transformStylesheet(viewSettings, width, height, data);
+          if (viewSettings && detail.type === 'application/xhtml+xml') {
+            const ctx = {
+              bookKey,
+              viewSettings,
+              content: data,
+              transformers: ['punctuation'],
+            };
+            return Promise.resolve(transformContent(ctx));
+          }
+          return data;
+        })
+        .catch((e) => {
+          console.error(new Error(`Failed to load ${detail.name}`, { cause: e }));
+          return '';
+        });
+    };
   };
 
   const docLoadHandler = (event: Event) => {
@@ -96,6 +103,9 @@ const FoliateViewer: React.FC<{
       mountAdditionalFonts(detail.doc);
 
       if (!detail.doc.isEventListenersAdded) {
+        // listened events in iframes are posted to the main window
+        // and then used by useMouseEvent and useTouchEvent
+        // and more gesture events can be detected in the iframeEventHandlers
         detail.doc.isEventListenersAdded = true;
         detail.doc.addEventListener('keydown', handleKeydown.bind(null, bookKey));
         detail.doc.addEventListener('mousedown', handleMousedown.bind(null, bookKey));
@@ -113,18 +123,6 @@ const FoliateViewer: React.FC<{
     const detail = (event as CustomEvent).detail;
     if (detail.reason !== 'scroll' && detail.reason !== 'page') return;
 
-    if (detail.reason === 'scroll') {
-      const renderer = viewRef.current?.renderer;
-      const viewSettings = getViewSettings(bookKey)!;
-      if (renderer && viewSettings.continuousScroll) {
-        if (renderer.start <= 0) {
-          viewRef.current?.prev(1);
-          // sometimes viewSize has subpixel value that the end never reaches
-        } else if (renderer.end + 1 >= renderer.viewSize) {
-          viewRef.current?.next(1);
-        }
-      }
-    }
     const parallelViews = getParallels(bookKey);
     if (parallelViews && parallelViews.size > 0) {
       parallelViews.forEach((key) => {
@@ -138,8 +136,9 @@ const FoliateViewer: React.FC<{
     }
   };
 
-  useTouchEvent(bookKey, viewRef);
-  const { handleTurnPage } = useClickEvent(bookKey, viewRef, containerRef);
+  const { handlePageFlip, handleContinuousScroll } = usePagination(bookKey, viewRef, containerRef);
+  const mouseHandlers = useMouseEvent(bookKey, handlePageFlip, handleContinuousScroll);
+  const touchHandlers = useTouchEvent(bookKey, handleContinuousScroll);
 
   useFoliateEvents(viewRef.current, {
     onLoad: docLoadHandler,
@@ -167,6 +166,10 @@ const FoliateViewer: React.FC<{
       document.body.append(view);
       containerRef.current?.appendChild(view);
 
+      const containerRect = containerRef.current?.getBoundingClientRect();
+      const width = containerRect?.width || window.innerWidth;
+      const height = containerRect?.height || window.innerHeight;
+
       const writingMode = viewSettings.writingMode;
       if (writingMode) {
         const settingsDir = getBookDirFromWritingMode(writingMode);
@@ -185,16 +188,23 @@ const FoliateViewer: React.FC<{
 
       const { book } = view;
 
-      book.transformTarget?.addEventListener('data', docTransformHandler);
+      book.transformTarget?.addEventListener('data', getDocTransformHandler({ width, height }));
       view.renderer.setStyles?.(getStyles(viewSettings));
 
       const isScrolled = viewSettings.scrolled!;
-      const marginPx = viewSettings.marginPx!;
-      const gapPercent = viewSettings.gapPercent!;
+      const showHeader = viewSettings.showHeader!;
+      const showFooter = viewSettings.showFooter!;
+      const isCompact = !showHeader && !showFooter;
+      const marginPx = isCompact ? viewSettings.compactMarginPx : viewSettings.marginPx;
+      const gapPercent = isCompact ? viewSettings.compactGapPercent : viewSettings.gapPercent;
       const animated = viewSettings.animated!;
       const maxColumnCount = viewSettings.maxColumnCount!;
       const maxInlineSize = getMaxInlineSize(viewSettings);
       const maxBlockSize = viewSettings.maxBlockSize!;
+      const screenOrientation = viewSettings.screenOrientation!;
+      if (appService?.isMobileApp) {
+        await lockScreenOrientation({ orientation: screenOrientation });
+      }
       if (animated) {
         view.renderer.setAttribute('animated', '');
       } else {
@@ -222,9 +232,10 @@ const FoliateViewer: React.FC<{
   return (
     <>
       <div
-        className='foliate-viewer h-[100%] w-[100%]'
-        onClick={(event) => handleTurnPage(event)}
         ref={containerRef}
+        className='foliate-viewer h-[100%] w-[100%]'
+        {...mouseHandlers}
+        {...touchHandlers}
       />
     </>
   );

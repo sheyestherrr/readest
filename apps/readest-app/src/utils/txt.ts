@@ -35,6 +35,16 @@ const zipWriteOptions = {
   lastModDate: new Date(0),
 };
 
+const escapeXml = (str: string) => {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+};
+
 export class TxtToEpubConverter {
   public async convert(options: Txt2EpubOptions): Promise<ConversionResult> {
     const { file: txtFile, author: providedAuthor, language: providedLanguage } = options;
@@ -85,24 +95,52 @@ export class TxtToEpubConverter {
   ): Chapter[] {
     const { language } = metadata;
     const { linesBetweenSegments } = option;
-    const segmentRegex = new RegExp(`(?:\\r?\\n){${linesBetweenSegments},}|-{4,}\r?\n`);
+    const segmentRegex = new RegExp(`(?:\\r?\\n){${linesBetweenSegments},}|-{8,}\r?\n`);
     let chapterRegex: RegExp;
     if (language === 'zh') {
-      chapterRegex =
-        /(?:^|\n|\s|《[^》]+》)(第?[一二三四五六七八九十百千万0-9]+[章卷节回讲篇](?:[：:、 　\(\)0-9]+[^\n-]*)?(?!\S)|(?:^|\n|\s|《[^》]+》)[一二三四五六七八九十百千万]+(?:[：:、 　][^\n-]+)(?!\S)|(?:楔子|前言|引言|序言|序章|总论|概论)(?:[：: 　][^\n-]*)?(?!\S))/g;
+      chapterRegex = new RegExp(
+        String.raw`(?:^|\n|\s)` +
+          '(' +
+          [
+            String.raw`第[零〇一二三四五六七八九十0-9][零〇一二三四五六七八九十百千万0-9]*(?:[章卷节回讲篇封])(?:[：:、 　\(\)0-9]*[^\n-]{0,24})(?!\S)`,
+            String.raw`(?:^|\n|\s|《[^》]+》)[一二三四五六七八九十][零〇一二三四五六七八九十百千万]*(?:[：: 　][^\n-]{0,24})(?!\S)`,
+            String.raw`(?:楔子|前言|引言|序言|序章|总论|概论)(?:[：: 　][^\n-]{0,24})?(?!\S)`,
+          ].join('|') +
+          ')',
+        'gu',
+      );
     } else {
       chapterRegex =
         /(?:^|\n|\s)(Chapter [0-9]+(?:[: ][^\n]*)?(?!\S)|Part [0-9]+(?:[: ][^\n]*)?(?!\S)|Prologue(?:[: ][^\n]*)?(?!\S)|Introduction(?:[: ][^\n]*)?(?!\S))/g;
     }
 
     const formatSegment = (segment: string): string => {
+      segment = escapeXml(segment);
       return segment
-        .replace(/-{4,}|_{4,}/g, '\n')
+        .replace(/-{8,}|_{8,}/g, '\n')
         .split(/\n+/)
         .map((line) => line.trim())
         .filter((line) => line)
         .join('</p><p>');
     };
+
+    const joinAroundUndefined = (arr: (string | undefined)[]) =>
+      arr.reduce<string[]>((acc, curr, i, src) => {
+        if (
+          curr === undefined &&
+          i > 0 &&
+          i < src.length - 1 &&
+          src[i - 1] !== undefined &&
+          src[i + 1] !== undefined
+        ) {
+          acc[acc.length - 1] += src[i + 1]!;
+          return acc;
+        }
+        if (curr !== undefined && (i === 0 || src[i - 1] !== undefined)) {
+          acc.push(curr);
+        }
+        return acc;
+      }, []);
 
     const chapters: Chapter[] = [];
     const segments = txtContent.split(segmentRegex);
@@ -111,14 +149,14 @@ export class TxtToEpubConverter {
       if (!trimmedSegment) continue;
 
       const segmentChapters = [];
-      const matches = trimmedSegment.split(chapterRegex);
+      const matches = joinAroundUndefined(trimmedSegment.split(chapterRegex));
       for (let j = 1; j < matches.length; j += 2) {
         const title = matches[j]?.trim() || '';
         const content = matches[j + 1]?.trim() || '';
 
         let isVolume = false;
         if (language === 'zh') {
-          isVolume = /第[一二三四五六七八九十百千万0-9]+卷/.test(title);
+          isVolume = /第[零〇一二三四五六七八九十百千万0-9]+卷/.test(title);
         } else {
           isVolume = /\b(Part|Volume|Book)\b/i.test(title);
         }
@@ -126,7 +164,7 @@ export class TxtToEpubConverter {
         const headTitle = isVolume ? `<h1>${title}</h1>` : `<h2>${title}</h2>`;
         const formattedSegment = formatSegment(content);
         segmentChapters.push({
-          title,
+          title: escapeXml(title),
           content: `${headTitle}<p>${formattedSegment}</p>`,
         });
       }
@@ -139,7 +177,7 @@ export class TxtToEpubConverter {
           initialContent.slice(0, 16);
         const formattedSegment = formatSegment(initialContent);
         segmentChapters.unshift({
-          title: segmentTitle,
+          title: escapeXml(segmentTitle),
           content: `<h3></h3><p>${formattedSegment}</p>`,
         });
       }
@@ -194,10 +232,10 @@ export class TxtToEpubConverter {
         <meta name="dtb:maxPageNumber" content="0" />
       </head>
       <docTitle>
-        <text>${bookTitle}</text>
+        <text>${escapeXml(bookTitle)}</text>
       </docTitle>
       <docAuthor>
-        <text>${author}</text>
+        <text>${escapeXml(author)}</text>
       </docAuthor>
       <navMap>
         ${navPoints}
@@ -258,9 +296,9 @@ export class TxtToEpubConverter {
     const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
       <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="book-id" version="2.0">
         <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-          <dc:title>${bookTitle}</dc:title>
+          <dc:title>${escapeXml(bookTitle)}</dc:title>
           <dc:language>${language}</dc:language>
-          <dc:creator>${author}</dc:creator>
+          <dc:creator>${escapeXml(author)}</dc:creator>
           <dc:identifier id="book-id">${identifier}</dc:identifier>
         </metadata>
         <manifest>

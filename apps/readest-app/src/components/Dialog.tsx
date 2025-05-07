@@ -3,9 +3,12 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import { MdArrowBackIosNew, MdArrowForwardIos } from 'react-icons/md';
 import { useEnv } from '@/context/EnvContext';
 import { useDrag } from '@/hooks/useDrag';
+import { useThemeStore } from '@/store/themeStore';
+import { useDeviceControlStore } from '@/store/deviceStore';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
 import { impactFeedback } from '@tauri-apps/plugin-haptics';
 import { getDirFromUILanguage } from '@/utils/rtl';
+import { eventDispatcher } from '@/utils/event';
 
 const VELOCITY_THRESHOLD = 0.5;
 const SNAP_THRESHOLD = 0.2;
@@ -38,24 +41,42 @@ const Dialog: React.FC<DialogProps> = ({
   onClose,
 }) => {
   const { appService } = useEnv();
-  const [isFullHeightInMobile, setIsFullHeightInMobile] = React.useState(!snapHeight);
+  const { systemUIVisible, statusBarHeight } = useThemeStore();
+  const { acquireBackKeyInterception, releaseBackKeyInterception } = useDeviceControlStore();
+  const [isFullHeightInMobile, setIsFullHeightInMobile] = useState(!snapHeight);
   const [isRtl] = useState(() => getDirFromUILanguage() === 'rtl');
   const iconSize22 = useResponsiveSize(22);
   const isMobile = window.innerWidth < 640;
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
+  const handleKeyDown = (event: KeyboardEvent | CustomEvent) => {
+    if (event instanceof CustomEvent) {
+      if (event.detail.keyName === 'Back') {
+        onClose();
+        return true;
+      }
+    } else if (event.key === 'Escape') {
       onClose();
     }
+    return false;
   };
 
   useEffect(() => {
+    if (!isOpen) return;
+    setIsFullHeightInMobile(!snapHeight);
     window.addEventListener('keydown', handleKeyDown);
+    if (appService?.isAndroidApp) {
+      acquireBackKeyInterception();
+      eventDispatcher.onSync('native-key-down', handleKeyDown);
+    }
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      if (appService?.isAndroidApp) {
+        releaseBackKeyInterception();
+        eventDispatcher.offSync('native-key-down', handleKeyDown);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isOpen]);
 
   const handleDragMove = (data: { clientY: number; deltaY: number }) => {
     if (!isMobile) return;
@@ -87,41 +108,39 @@ const Dialog: React.FC<DialogProps> = ({
       data.velocity > VELOCITY_THRESHOLD ||
       (data.velocity >= 0 && data.clientY >= window.innerHeight * snapLower)
     ) {
+      // dialog is dismissed
       const transitionDuration = 0.15 / Math.max(data.velocity, 0.5);
       modal.style.height = '100%';
       modal.style.transition = `transform ${transitionDuration}s ease-out`;
       modal.style.transform = 'translateY(100%)';
       overlay.style.transition = `opacity ${transitionDuration}s ease-out`;
       overlay.style.opacity = '0';
+      onClose();
       setTimeout(() => {
-        onClose();
         modal.style.transform = 'translateY(0%)';
       }, 300);
-      if (appService?.hasHaptics) {
-        impactFeedback('medium');
-      }
     } else if (
       snapHeight &&
       data.clientY > window.innerHeight * snapUpper &&
       data.clientY < window.innerHeight * snapLower
     ) {
+      // dialog is snapped
+      overlay.style.transition = `opacity 0.3s ease-out`;
+      overlay.style.opacity = `${1 - snapHeight}`;
+      modal.style.height = `${snapHeight * 100}%`;
+      modal.style.bottom = '0';
       modal.style.transition = `transform 0.3s ease-out`;
-      modal.style.transform = `translateY(${(1 - snapHeight) * window.innerHeight}px)`;
-      setTimeout(() => {
-        modal.style.height = `${snapHeight * 100}%`;
-      }, 100);
-      if (appService?.hasHaptics) {
-        impactFeedback('medium');
-      }
+      modal.style.transform = '';
     } else {
+      // dialog is opened without snap
       setIsFullHeightInMobile(true);
       modal.style.height = '100%';
       modal.style.transition = `transform 0.3s ease-out`;
       modal.style.transform = `translateY(0%)`;
       overlay.style.opacity = '0';
-      if (appService?.hasHaptics) {
-        impactFeedback('medium');
-      }
+    }
+    if (appService?.hasHaptics) {
+      impactFeedback('medium');
     }
   };
 
@@ -143,7 +162,7 @@ const Dialog: React.FC<DialogProps> = ({
       />
       <div
         className={clsx(
-          'modal-box settings-content z-20 flex flex-col rounded-none rounded-tl-2xl rounded-tr-2xl p-0 sm:rounded-2xl',
+          'modal-box settings-content absolute z-20 flex flex-col rounded-none rounded-tl-2xl rounded-tr-2xl p-0 sm:rounded-2xl',
           'h-full max-h-full w-full max-w-full',
           window.innerWidth < window.innerHeight
             ? 'sm:h-[50%] sm:w-3/4'
@@ -157,14 +176,23 @@ const Dialog: React.FC<DialogProps> = ({
           snapHeight
             ? {
                 height: `${snapHeight * 100}%`,
-                transform: `translateY(${(1 - snapHeight) * window.innerHeight}px)`,
+                bottom: 0,
               }
             : {}
         }
       >
         {window.innerWidth < 640 && (
           <div
-            className='drag-handle flex h-10 max-h-10 min-h-10 w-full cursor-row-resize items-center justify-center'
+            className={clsx(
+              'drag-handle flex h-10 max-h-10 min-h-10 w-full cursor-row-resize items-center justify-center',
+              'transition-padding-top duration-300 ease-out',
+            )}
+            style={{
+              paddingTop:
+                appService?.isAndroidApp && systemUIVisible && isFullHeightInMobile
+                  ? statusBarHeight
+                  : 0,
+            }}
             onMouseDown={handleDragStart}
             onTouchStart={handleDragStart}
           >

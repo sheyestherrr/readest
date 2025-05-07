@@ -87,13 +87,13 @@ const getFontStyles = (
     body * {
       ${overrideFont ? 'font-family: revert !important;' : ''}
     }
-    a:any-link {
+    a:any-link, a:any-link * {
       ${overrideFont ? `color: ${primary};` : ''}
     }
     /* https://github.com/whatwg/html/issues/5426 */
     @media (prefers-color-scheme: dark) {
-      a:link {
-        ${overrideFont ? `color: lightblue;` : ''}
+      a:any-link, a:any-link * {
+        ${overrideFont ? `color: ${primary};` : `color: lightblue;`}
       }
     }
     /* override inline hardcoded text color */
@@ -111,6 +111,7 @@ const getAdditionalFontLinks = () => `
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/misans-webfont@1.0.4/misans-l3/misans-l3/result.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cn-fontsource-lxgw-wen-kai-gb-screen@1.0.6/font.min.css" crossorigin="anonymous">
   <link rel='stylesheet' href='https://fontsapi.zeoseven.com/431/main/result.css' crossorigin="anonymous"/>
+  <link rel='stylesheet' href="https://fonts.googleapis.com/css2?family=Vollkorn&display=swap" crossorigin="anonymous">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC&display=swap" crossorigin="anonymous">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC&family=Noto+Sans+TC&display=swap" crossorigin="anonymous">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP&display=swap" crossorigin="anonymous">
@@ -212,7 +213,7 @@ const getLayoutStyles = (
     background-color: var(--theme-bg-color, transparent);
     background: var(--background-set, none);
   }
-  body *:not(a):not(#b1):not(#b1 *):not(#b2):not(#b2 *):not(img):not(.bg):not(.bg *):not(.vol):not(.vol *):not(.background):not(.background *) {
+  body.pbg, body *:not(a):not(#b1):not(#b1 *):not(#b2):not(#b2 *):not(img):not(.bg):not(.bg *):not(.vol):not(.vol *):not(.background):not(.background *) {
     ${bg === '#ffffff' ? '' : `background-color: ${bg} !important;`}
   }
   body {
@@ -222,11 +223,11 @@ const getLayoutStyles = (
   svg, img {
     background-color: transparent !important;
   }
-  p, li, blockquote, dd {
+  p:not(.poem):not(.poetry):not(.lh):not(:has(> :is(img, video, font, b, h1, h2, h3, h4, h5, table))), li, blockquote, dd  {
     line-height: ${lineSpacing} ${overrideLayout ? '!important' : ''};
     word-spacing: ${wordSpacing}px ${overrideLayout ? '!important' : ''};
     letter-spacing: ${letterSpacing}px ${overrideLayout ? '!important' : ''};
-    text-indent: ${vertical ? textIndent * 1.2 : textIndent}em;
+    text-indent: ${vertical ? textIndent * 1.2 : textIndent}em ${overrideLayout ? '!important' : ''};
     text-align: ${overrideLayout ? 'var(--default-text-align)' : 'inherit'};
     -webkit-hyphens: ${hyphenate ? 'auto' : 'manual'};
     hyphens: ${hyphenate ? 'auto' : 'manual'};
@@ -242,7 +243,7 @@ const getLayoutStyles = (
     ${!vertical ? `margin-top: ${paragraphMargin}em ${overrideLayout ? '!important' : ''};` : ''}
     ${!vertical ? `margin-bottom: ${paragraphMargin}em ${overrideLayout ? '!important' : ''};` : ''}
   }
-  li, p:has(> :is(img, video, font, h1, h2, h3, h4, h5, table)) {
+  li, p:has(> :is(img, video, font, b, h1, h2, h3, h4, h5, table)) {
     text-indent: 0 !important;
   }
   /* prevent the above from overriding the align attribute */
@@ -273,12 +274,16 @@ const getLayoutStyles = (
     display: none;
   }
 
+  /* Now begins really dirty hacks to fix some badly designed epubs */
   .duokan-footnote-content,
   .duokan-footnote-item {
     display: none;
   }
 
-  /* Now begins really dirty hacks to fix some badly designed epubs */
+  .duokan-image-single {
+    height: 100vh !important;
+  }
+
   .calibre {
     color: unset;
   }
@@ -419,10 +424,18 @@ export const mountAdditionalFonts = (document: Document) => {
   document.head.appendChild(style);
 };
 
-export const transformStylesheet = (css: string) => {
+export const transformStylesheet = (
+  viewSettings: ViewSettings,
+  width: number,
+  height: number,
+  css: string,
+) => {
   const isMobile = ['ios', 'android'].includes(getOSPlatform());
   const fontScale = isMobile ? 1.25 : 1;
+  const w = width * (1 - viewSettings.gapPercent / 100);
+  const h = height - viewSettings.marginPx * 2;
   // replace absolute font sizes with rem units
+  // replace vw and vh as they cause problems with layout
   // replace hardcoded colors
   return css
     .replace(/font-size\s*:\s*xx-small/gi, 'font-size: 0.6rem')
@@ -441,6 +454,8 @@ export const transformStylesheet = (css: string) => {
       const rem = parseFloat(pt) / fontScale / 12;
       return `font-size: ${rem}rem`;
     })
+    .replace(/(\d*\.?\d+)vw/gi, (_, d) => (parseFloat(d) * w) / 100 + 'px')
+    .replace(/(\d*\.?\d+)vh/gi, (_, d) => (parseFloat(d) * h) / 100 + 'px')
     .replace(/[\s;]color\s*:\s*#000000/gi, 'color: var(--theme-fg-color)')
     .replace(/[\s;]color\s*:\s*#000/gi, 'color: var(--theme-fg-color)')
     .replace(/[\s;]color\s*:\s*rgb\(0,\s*0,\s*0\)/gi, 'color: var(--theme-fg-color)');

@@ -12,6 +12,7 @@ import {
   LINUX_FONTS,
   MACOS_FONTS,
   MONOSPACE_FONTS,
+  NON_FREE_FONTS,
   SANS_SERIF_FONTS,
   SERIF_FONTS,
   WINDOWS_FONTS,
@@ -47,6 +48,10 @@ interface FontFaceProps {
 
 const handleFontFaceFont = (option: string, family: string) => {
   return `'${option}', ${family}`;
+};
+
+const filterNonFreeFonts = (font: string) => {
+  return !['android', 'linux'].includes(getOSPlatform()) || !NON_FREE_FONTS.includes(font);
 };
 
 const FontFace = ({
@@ -137,12 +142,26 @@ const FontPanel: React.FC<{ bookKey: string }> = ({ bookKey }) => {
   useEffect(() => {
     if (isTauriAppPlatform()) {
       getSysFontsList().then((res) => {
-        if (res.error) {
+        if (res.error || Object.keys(res.fonts).length === 0) {
           console.error('Failed to get system fonts list:', res.error);
           return;
         }
-        const fonts = res.fonts.filter((font) => font && !isSymbolicFontName(font));
-        setSysFonts([...new Set(fonts)].sort((a, b) => a.localeCompare(b)));
+        const processedFonts: string[] = [];
+        Object.entries(res.fonts).forEach(([fontName, fontFamily]) => {
+          if (!fontName || isSymbolicFontName(fontName)) return;
+
+          const fontsInFamily = Object.entries(res.fonts).filter(
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            ([_, family]) => family === fontFamily,
+          );
+
+          if (fontsInFamily.length === 1) {
+            processedFonts.push(fontFamily);
+          } else {
+            processedFonts.push(fontName);
+          }
+        });
+        setSysFonts([...new Set(processedFonts)].sort((a, b) => a.localeCompare(b)));
       });
     }
   }, []);
@@ -291,7 +310,7 @@ const FontPanel: React.FC<{ bookKey: string }> = ({ bookKey }) => {
               className='config-item-top'
               family='serif'
               label={_('Serif Font')}
-              options={[...SERIF_FONTS, ...CJK_SERIF_FONTS]}
+              options={[...SERIF_FONTS.filter(filterNonFreeFonts), ...CJK_SERIF_FONTS]}
               moreOptions={sysFonts}
               selected={serifFont}
               onSelect={setSerifFont}
@@ -299,7 +318,7 @@ const FontPanel: React.FC<{ bookKey: string }> = ({ bookKey }) => {
             <FontFace
               family='sans-serif'
               label={_('Sans-Serif Font')}
-              options={[...SANS_SERIF_FONTS, ...CJK_SANS_SERIF_FONTS]}
+              options={[...SANS_SERIF_FONTS.filter(filterNonFreeFonts), ...CJK_SANS_SERIF_FONTS]}
               moreOptions={sysFonts}
               selected={sansSerifFont}
               onSelect={setSansSerifFont}

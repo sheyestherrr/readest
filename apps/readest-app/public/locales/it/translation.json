@@ -27,7 +27,6 @@
   "Delete": "Elimina",
   "Delete Highlight": "Elimina evidenziazione",
   "Dictionary": "Dizionario",
-  "Disable Click-to-Flip": "Disattiva click per voltare pagina",
   "Download Readest": "Scarica Readest",
   "Edit": "Modifica",
   "Enter your custom CSS here...": "Inserisci qui il tuo CSS personalizzato...",
@@ -112,7 +111,6 @@
   "Unknown": "Sconosciuto",
   "Untitled": "Senza titolo",
   "Updated:": "Aggiornato:",
-  "User avatar": "Avatar utente",
   "Version {{version}}": "Versione {{version}}",
   "Vertical Direction": "Direzione verticale",
   "Welcome to your library. You can import your books here and read them anytime.": "Benvenuto nella tua biblioteca. Puoi importare i tuoi libri qui e leggerli in qualsiasi momento.",
@@ -259,7 +257,6 @@
   "Auto Import on File Open": "Importazione automatica all'apertura del file",
   "LXGW WenKai GB Screen": "LXGW WenKai SC",
   "LXGW WenKai TC": "LXGW WenKai TC",
-  "Swap Click-to-Flip Area": "Scambia area click per voltare pagina",
   "No chapters detected.": "Nessun capitolo rilevato.",
   "Failed to parse the EPUB file.": "Impossibile analizzare il file EPUB.",
   "This book format is not supported.": "Questo formato di libro non è supportato.",
@@ -298,5 +295,13 @@
   "List": "Elenco",
   "Grid": "Griglia",
   "(from 'As You Like It', Act II)": "(da 'Come vi piace', Atto II)",
-  "Link Color": "Colore link"
+  "Link Color": "Colore link",
+  "Volume Keys for Page Flip": "Tasti volume per girare pagina",
+  "Clicks for Page Flip": "Clic per girare pagina",
+  "Swap Clicks Area": "Inverti area dei clic",
+  "Screen": "Schermo",
+  "Orientation": "Orientamento",
+  "Portrait": "Ritratto",
+  "Landscape": "Paesaggio",
+  "Open Last Book on Start": "Apri ultimo libro all'avvio"
 }

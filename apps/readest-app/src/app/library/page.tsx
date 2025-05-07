@@ -31,6 +31,7 @@ import { useBooksSync } from './hooks/useBooksSync';
 import { useThemeStore } from '@/store/themeStore';
 import { useScreenWakeLock } from '@/hooks/useScreenWakeLock';
 import { useOpenWithBooks } from '@/hooks/useOpenWithBooks';
+import { lockScreenOrientation } from '@/utils/bridge';
 import {
   tauriHandleSetAlwaysOnTop,
   tauriHandleToggleFullScreen,
@@ -61,7 +62,9 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
     updateBook,
     setLibrary,
     checkOpenWithBooks,
+    checkLastOpenBooks,
     setCheckOpenWithBooks,
+    setCheckLastOpenBooks,
   } = useLibraryStore();
   const _ = useTranslation();
   useTheme({ systemUIVisible: true, appThemeColor: 'base-200' });
@@ -115,6 +118,12 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
     doCheckAppUpdates();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);
+
+  useEffect(() => {
+    if (appService?.isMobileApp) {
+      lockScreenOrientation({ orientation: 'portrait' });
+    }
+  }, [appService]);
 
   const handleDropedFiles = async (files: File[] | string[]) => {
     if (files.length === 0) return;
@@ -231,6 +240,27 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
     [],
   );
 
+  const handleOpenLastBooks = async (
+    appService: AppService,
+    lastBookIds: string[],
+    libraryBooks: Book[],
+  ) => {
+    if (lastBookIds.length === 0) return;
+    const bookIds: string[] = [];
+    for (const bookId of lastBookIds) {
+      const book = libraryBooks.find((b) => b.hash === bookId);
+      if (book && (await appService.isBookAvailable(book))) {
+        bookIds.push(book.hash);
+      }
+      console.log('Opening last books:', bookIds);
+      if (bookIds.length > 0) {
+        setTimeout(() => {
+          navigateToReader(router, bookIds);
+        }, 0);
+      }
+    }
+  };
+
   useEffect(() => {
     if (isInitiating.current) return;
     isInitiating.current = true;
@@ -256,11 +286,17 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
       setSettings(settings);
 
       const libraryBooks = await appService.loadLibraryBooks();
-      if (checkOpenWithBooks && isTauriAppPlatform()) {
+      if (checkOpenWithBooks) {
         await handleOpenWithBooks(appService, libraryBooks);
       } else {
         setCheckOpenWithBooks(false);
         setLibrary(libraryBooks);
+      }
+
+      if (checkLastOpenBooks && settings.openLastBooks) {
+        await handleOpenLastBooks(appService, settings.lastOpenBooks, libraryBooks);
+      } else {
+        setCheckLastOpenBooks(false);
       }
 
       setLibraryLoaded(true);
@@ -283,6 +319,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
     initLibrary();
     return () => {
       setCheckOpenWithBooks(false);
+      setCheckLastOpenBooks(false);
       isInitiating.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -501,7 +538,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
     return null;
   }
 
-  if (checkOpenWithBooks) {
+  if (checkOpenWithBooks || checkLastOpenBooks) {
     return (
       loading && (
         <div className='fixed inset-0 z-50 flex items-center justify-center'>

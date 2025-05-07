@@ -6,11 +6,13 @@ import android.net.Uri
 import android.util.Log
 import android.os.Build
 import android.view.View
+import android.view.KeyEvent
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.WindowInsetsController
 import android.graphics.Color
 import android.webkit.WebView
+import android.content.pm.ActivityInfo
 import android.graphics.fonts.SystemFonts
 import android.graphics.fonts.Font
 import androidx.core.view.WindowCompat
@@ -47,6 +49,22 @@ class InstallPackageRequestArgs {
 class SetSystemUIVisibilityRequestArgs {
   var visible: Boolean? = false
   var darkMode: Boolean? = false
+}
+
+@InvokeArg
+class InterceptKeysRequestArgs {
+  var volumeKeys: Boolean? = null
+  var backKey: Boolean? = null
+}
+
+@InvokeArg
+class LockScreenOrientationRequestArgs {
+  var orientation: String? = null
+}
+
+interface KeyDownInterceptor {
+    fun interceptVolumeKeys(enabled: Boolean)
+    fun interceptBackKey(enabled: Boolean)
 }
 
 @TauriPlugin
@@ -282,11 +300,52 @@ class NativeBridgePlugin(private val activity: Activity): Plugin(activity) {
                 var fontName = fileFileName
                     .replace(Regex("\\.(ttf|otf)$", RegexOption.IGNORE_CASE), "")
                     .trim()
+                fontList.add(fontName)
             }
-            ret.put("fonts", JSONArray(fontList))
+            var fontDict = JSObject()
+            for (fontName in fontList) {
+                fontDict.put(fontName, fontName)
+            }
+            ret.put("fonts", fontDict)
         } catch (e: Exception) {
             ret.put("error", e.message)
         }
         invoke.resolve(ret)
+    }
+
+    @Command
+    fun intercept_keys(invoke: Invoke) {
+        val args = invoke.parseArgs(InterceptKeysRequestArgs::class.java)
+        if (activity is KeyDownInterceptor) {
+          when (args.backKey) {
+              true -> (activity as KeyDownInterceptor).interceptBackKey(true)
+              false -> (activity as KeyDownInterceptor).interceptBackKey(false)
+              else -> {}
+          }
+          when (args.volumeKeys) {
+              true -> (activity as KeyDownInterceptor).interceptVolumeKeys(true)
+              false -> (activity as KeyDownInterceptor).interceptVolumeKeys(false)
+              else -> {}
+          }
+        } else {
+            Log.e("NativeBridgePlugin", "Activity does not implement KeyDownInterceptor")
+        }
+        invoke.resolve()
+    }
+
+    @Command
+    fun lock_screen_orientation(invoke: Invoke) {
+      val args = invoke.parseArgs(LockScreenOrientationRequestArgs::class.java)
+      val orientation = args.orientation ?: "auto"
+      when (orientation) {
+          "portrait" -> activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+          "landscape" -> activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+          "auto" -> activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+          else -> {
+              invoke.reject("Invalid orientation mode")
+              return
+          }
+      }
+      invoke.resolve()
     }
 }

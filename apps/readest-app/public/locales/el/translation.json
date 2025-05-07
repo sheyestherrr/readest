@@ -27,7 +27,6 @@
   "Delete": "Διαγραφή",
   "Delete Highlight": "Διαγραφή επισήμανσης",
   "Dictionary": "Λεξικό",
-  "Disable Click-to-Flip": "Απενεργοποίηση κλικ για γύρισμα σελίδας",
   "Download Readest": "Λήψη Readest",
   "Edit": "Επεξεργασία",
   "Enter your custom CSS here...": "Εισάγετε το προσαρμοσμένο CSS εδώ...",
@@ -112,7 +111,6 @@
   "Unknown": "Άγνωστο",
   "Untitled": "Χωρίς τίτλο",
   "Updated:": "Ενημερώθηκε:",
-  "User avatar": "Εικόνα χρήστη",
   "Version {{version}}": "Έκδοση {{version}}",
   "Vertical Direction": "Κάθετη κατεύθυνση",
   "Welcome to your library. You can import your books here and read them anytime.": "Καλώς ήρθατε στη βιβλιοθήκη σας. Μπορείτε να εισάγετε τα βιβλία σας εδώ και να τα διαβάσετε οποιαδήποτε στιγμή.",
@@ -259,7 +257,6 @@
   "Auto Import on File Open": "Αυτόματη εισαγωγή κατά το άνοιγμα αρχείου",
   "LXGW WenKai GB Screen": "LXGW WenKai SC",
   "LXGW WenKai TC": "LXGW WenKai TC",
-  "Swap Click-to-Flip Area": "Ανταλλαγή περιοχής κλικ για γύρισμα σελίδας",
   "No chapters detected.": "Δεν εντοπίστηκαν κεφάλαια.",
   "Failed to parse the EPUB file.": "Αποτυχία ανάλυσης του αρχείου EPUB.",
   "This book format is not supported.": "Αυτή η μορφή βιβλίου δεν υποστηρίζεται.",
@@ -298,5 +295,13 @@
   "List": "Λίστα",
   "Grid": "Πλέγμα",
   "(from 'As You Like It', Act II)": "('Όπως σας αρέσει', Πράξη II)",
-  "Link Color": "Χρώμα συνδέσμου"
+  "Link Color": "Χρώμα συνδέσμου",
+  "Volume Keys for Page Flip": "Πλήκτρα έντασης για ανατροπή σελίδας",
+  "Clicks for Page Flip": "Κλικ για ανατροπή σελίδας",
+  "Swap Clicks Area": "Ανταλλαγή περιοχής κλικ",
+  "Screen": "Οθόνη",
+  "Orientation": "Προσανατολισμός",
+  "Portrait": "Πορτραίτο",
+  "Landscape": "Τοπίο",
+  "Open Last Book on Start": "Άνοιγμα τελευταίου βιβλίου κατά την εκκίνηση"
 }
